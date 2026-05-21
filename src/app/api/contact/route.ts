@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { ratelimit } from '@/lib/redis'
+import { getRatelimit } from '@/lib/redis'
 import { sendEmail } from '@/lib/ses'
 
 const contactSchema = z.object({
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     // Rate limiting — graceful fallback if Redis not configured
     if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
       try {
-        const { success } = await ratelimit.limit(ip)
+        const { success } = await getRatelimit().limit(ip)
         if (!success) {
           return NextResponse.json(
             { error: 'Too many requests. Try again later.' },
