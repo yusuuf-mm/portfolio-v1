@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useMemo, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -34,12 +34,12 @@ function OrchestrationScene() {
   const groupRef = useRef<THREE.Group>(null)
   const meshRefs = useRef<THREE.Mesh[]>([])
   const lineRef = useRef<THREE.LineSegments>(null)
+  const posAttrRef = useRef<THREE.BufferAttribute>(null)
+  const positionsRef = useRef<THREE.Vector3[]>(
+    nodes.map((n) => new THREE.Vector3(...n.basePosition))
+  )
 
-  const positions = useMemo(() => {
-    return nodes.map((n) => new THREE.Vector3(...n.basePosition))
-  }, [])
-
-  const edgeGeometry = useMemo(() => {
+  useEffect(() => {
     const geom = new THREE.BufferGeometry()
     const arr = new Float32Array(edgePairs.length * 6)
     edgePairs.forEach(([from, to], i) => {
@@ -50,18 +50,22 @@ function OrchestrationScene() {
       arr[i * 6 + 4] = nodes[to].basePosition[1]
       arr[i * 6 + 5] = nodes[to].basePosition[2]
     })
-    geom.setAttribute('position', new THREE.BufferAttribute(arr, 3))
-    return geom
-  }, [])
+    const attr = new THREE.BufferAttribute(arr, 3)
+    geom.setAttribute('position', attr)
+    posAttrRef.current = attr
 
-  useEffect(() => {
-    return () => {
-      edgeGeometry.dispose()
+    if (lineRef.current) {
+      lineRef.current.geometry = geom
     }
-  }, [edgeGeometry])
+
+    return () => {
+      geom.dispose()
+    }
+  }, [])
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
+    const positions = positionsRef.current
 
     nodes.forEach((node, i) => {
       positions[i].x = node.basePosition[0] + Math.sin(t * node.speed[0] + i) * 0.3
@@ -74,17 +78,19 @@ function OrchestrationScene() {
       }
     })
 
-    const posAttr = edgeGeometry.attributes.position as THREE.BufferAttribute
-    const posArray = posAttr.array as Float32Array
-    edgePairs.forEach(([from, to], i) => {
-      posArray[i * 6] = positions[from].x
-      posArray[i * 6 + 1] = positions[from].y
-      posArray[i * 6 + 2] = positions[from].z
-      posArray[i * 6 + 3] = positions[to].x
-      posArray[i * 6 + 4] = positions[to].y
-      posArray[i * 6 + 5] = positions[to].z
-    })
-    posAttr.needsUpdate = true
+    const posAttr = posAttrRef.current
+    if (posAttr) {
+      const arr = posAttr.array as Float32Array
+      edgePairs.forEach(([from, to], i) => {
+        arr[i * 6] = positions[from].x
+        arr[i * 6 + 1] = positions[from].y
+        arr[i * 6 + 2] = positions[from].z
+        arr[i * 6 + 3] = positions[to].x
+        arr[i * 6 + 4] = positions[to].y
+        arr[i * 6 + 5] = positions[to].z
+      })
+      posAttr.needsUpdate = true
+    }
 
     if (groupRef.current) {
       groupRef.current.rotation.y = Math.sin(t * 0.1) * 0.05
@@ -106,7 +112,8 @@ function OrchestrationScene() {
         </mesh>
       ))}
 
-      <lineSegments ref={lineRef} geometry={edgeGeometry}>
+      <lineSegments ref={lineRef}>
+        <bufferGeometry />
         <lineBasicMaterial color="#B8935A" transparent opacity={0.12} />
       </lineSegments>
     </group>
