@@ -15,7 +15,7 @@ interface ContactLink {
   href: string | null
 }
 
-const resumeUrl = process.env.NEXT_PUBLIC_RESUME_URL
+const resumeUrl = process.env.NEXT_PUBLIC_RESUME_URL ? '/api/resume' : null
 
 const baseContactLinks: ContactLink[] = [
   {
