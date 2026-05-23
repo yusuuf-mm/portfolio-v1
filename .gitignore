@@ -30,6 +30,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfvars
+terraform/*.tfstate
+terraform/*.tfstate.backup
+
 # env files (can opt-in for committing if needed)
 .env*
 
@@ -39,3 +46,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+resume.pdf

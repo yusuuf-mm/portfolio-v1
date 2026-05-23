@@ -2,12 +2,22 @@
 
 import { useRef, useState } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { ExternalLink, Globe, Mail, MapPin } from 'lucide-react'
+import { Download, ExternalLink, Globe, Mail, MapPin } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const ease = [0.22, 1, 0.36, 1] as [number, number, number, number]
 
-const contactLinks = [
+interface ContactLink {
+  icon: LucideIcon
+  label: string
+  value: string
+  href: string | null
+}
+
+const resumeUrl = process.env.NEXT_PUBLIC_RESUME_URL
+
+const baseContactLinks: ContactLink[] = [
   {
     icon: Mail,
     label: 'Email',
@@ -26,13 +36,28 @@ const contactLinks = [
     value: 'linkedin.com/in/yusuufmm',
     href: 'https://linkedin.com/in/yusuufmm',
   },
-  {
-    icon: MapPin,
-    label: 'Location',
-    value: 'Bauchi, Nigeria',
-    href: null,
-  },
 ]
+
+const locationLink: ContactLink = {
+  icon: MapPin,
+  label: 'Location',
+  value: 'Bauchi, Nigeria',
+  href: null,
+}
+
+function getContactLinks(): ContactLink[] {
+  const links: ContactLink[] = [...baseContactLinks]
+  if (resumeUrl) {
+    links.push({
+      icon: Download,
+      label: 'Resume',
+      value: 'Download Resume',
+      href: resumeUrl,
+    })
+  }
+  links.push(locationLink)
+  return links
+}
 
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -219,7 +244,7 @@ export default function Contact() {
 
             {/* Links */}
             <div className="flex flex-col gap-5">
-              {contactLinks.map((link) => (
+              {getContactLinks().map((link) => (
                 <div key={link.label} className="flex items-start gap-4">
                   <link.icon size={18} className="text-[var(--accent)] mt-0.5 shrink-0" />
                   <div className="flex flex-col gap-0.5">
@@ -231,6 +256,7 @@ export default function Contact() {
                         href={link.href}
                         target={link.href.startsWith('mailto') ? undefined : '_blank'}
                         rel="noopener noreferrer"
+                        download={link.label === 'Resume' ? true : undefined}
                         className="font-mono text-sm text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors"
                       >
                         {link.value}
