@@ -39,7 +39,7 @@ export const stack: ToolGroup[] = [
   {
     name: 'Cloud & Infrastructure',
     tools: [
-      'AWS (S3, EC2, Lambda, SES, DynamoDB)',
+      'AWS (S3, EC2, Lambda, DynamoDB)',
       'GCP',
       'Terraform',
       'Docker',

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { getRatelimit } from '@/lib/redis'
-import { sendEmail } from '@/lib/ses'
+import { sendEmail } from '@/lib/resend'
 
 const schema = z.object({
   name: z.string().min(1).max(100),
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
   const { name, email, message } = parsed.data
 
   const sent = await sendEmail({ name, email, message }).catch((err: unknown) => {
-    console.error('SES error:', err)
-    return err instanceof Error ? err : new Error('Unknown SES error')
+    console.error('Resend error:', err)
+    return err instanceof Error ? err : new Error('Unknown email error')
   })
 
   if (sent instanceof Error) {

@@ -30,23 +30,10 @@ After apply, note the outputs:
 - `cloudfront_domain` — your CloudFront CDN URL
 - `resume_url` — public link to `resume.pdf` on CloudFront
 - `s3_bucket_name` — bucket for uploading assets
-- `ses_identity_arn` — SES email identity
 
 ---
 
-## 2 — SES Email Verification
-
-After `terraform apply`, AWS sends a verification email to `yusuufmmdevs@gmail.com`.
-
-1. Check the inbox for **"Amazon Web Services – Email Address Verification Request"**
-2. Click the verification link
-3. Confirm in the AWS SES console that the identity status is **Verified**
-
-> Until verified, SES is in sandbox mode — it can only send to verified addresses.
-
----
-
-## 3 — Upload Resume to S3
+## 2 — Upload Resume to S3
 
 ```bash
 # From the project root (where resume.pdf lives)
@@ -59,7 +46,7 @@ curl -I https://<cloudfront-domain>/resume.pdf
 
 ---
 
-## 4 — is-a.dev Domain Setup
+## 3 — is-a.dev Domain Setup
 
 The `is-a.dev` subdomain points to **Vercel** (not CloudFront). CloudFront is only for static assets like the resume PDF.
 
@@ -80,28 +67,24 @@ The `is-a.dev` subdomain points to **Vercel** (not CloudFront). CloudFront is on
 
 ---
 
-## 5 — Vercel Configuration
+## 4 — Vercel Configuration
 
 In your Vercel project settings:
 
 1. **Framework**: Next.js (auto-detected)
 2. **Build command**: `npm run build`
 3. **Output directory**: `.next` (default)
-4. **Environment Variables**: add all vars from Section 6 below
+4. **Environment Variables**: add all vars from Section 5 below
 
 > The `resume.pdf` in the project root is gitignored — it lives on S3/CloudFront, not in the Vercel build.
 
 ---
 
-## 6 — Environment Variables Checklist
+## 5 — Environment Variables Checklist
 
 | Variable                   | Value                                    | Where  |
 | -------------------------- | ---------------------------------------- | ------ |
-| `AWS_REGION`               | `us-east-1`                              | Vercel |
-| `AWS_ACCESS_KEY_ID`        | from IAM                                 | Vercel |
-| `AWS_SECRET_ACCESS_KEY`    | from IAM                                 | Vercel |
-| `SES_FROM_EMAIL`           | `yusuufmmdevs@gmail.com`                 | Vercel |
-| `SES_TO_EMAIL`             | `yusuf2000mm@gmail.com`                  | Vercel |
+| `RESEND_API_KEY`           | from Resend dashboard                    | Vercel |
 | `UPSTASH_REDIS_REST_URL`   | from Upstash dashboard                   | Vercel |
 | `UPSTASH_REDIS_REST_TOKEN` | from Upstash dashboard                   | Vercel |
 | `NEXT_PUBLIC_RESUME_URL`   | `https://<cloudfront-domain>/resume.pdf` | Vercel |
@@ -118,4 +101,4 @@ cd terraform
 terraform destroy
 ```
 
-This removes the S3 bucket, CloudFront distribution, and SES identity.
+This removes the S3 bucket and CloudFront distribution.

@@ -39,7 +39,7 @@ Core strengths:
 | Icons      | lucide-react                        | ^1       |
 | Fonts      | geist                               | latest   |
 | Forms      | react-hook-form + zod               | latest   |
-| Email      | @aws-sdk/client-ses                 | ^3       |
+| Email      | resend                              | ^6       |
 | Rate limit | @upstash/ratelimit + @upstash/redis | latest   |
 | Utils      | clsx + tailwind-merge               | latest   |
 
@@ -70,7 +70,7 @@ portfolio-v1/
 │ │ ├── globals.css # CSS variables, base styles
 │ │ └── api/
 │ │ └── contact/
-│ │ └── route.ts # Contact form → AWS SES (Phase 5)
+│ │ └── route.ts # Contact form → Resend (Phase 5)
 │ ├── components/
 │ │ ├── layout/
 │ │ │ ├── Navbar.tsx # Fixed navbar, scroll-aware, theme toggle
@@ -98,7 +98,7 @@ portfolio-v1/
 │ │ └── about.ts # Phase 3
 │ ├── lib/
 │ │ ├── utils.ts # cn() utility
-│ │ ├── ses.ts # AWS SES client (Phase 5)
+│ │ ├── resend.ts # Resend email client (Phase 5)
 │ │ └── redis.ts # Upstash rate limiter (Phase 5)
 │ ├── hooks/
 │ │ ├── useScrollProgress.ts # Phase 2+
@@ -109,7 +109,7 @@ portfolio-v1/
 │ ├── main.tf
 │ ├── s3.tf
 │ ├── cloudfront.tf
-│ ├── ses.tf
+│ ├── s3.tf
 │ └── variables.tf
 ├── .github/
 │ └── workflows/
@@ -225,13 +225,13 @@ Hero layout:
 
 - Stack.tsx: grouped tools grid
 - Contact.tsx: terminal-style form
-- src/app/api/contact/route.ts: AWS SES integration
-- src/lib/ses.ts + redis.ts
+- src/app/api/contact/route.ts: Resend email integration
+- src/lib/resend.ts + redis.ts
 - src/content/stack.ts
 
 ### Phase 6 — AWS Infrastructure
 
-- Terraform: S3, CloudFront, SES, Route 53, ACM
+- Terraform: S3, CloudFront, Route 53, ACM
 - Custom domain setup
 - Resume PDF on S3 + CloudFront URL
 
@@ -308,13 +308,9 @@ Always use @/\* aliases. Never use relative paths like ../../components.
 
 \\\`\\\`\\\`bash
 
-# AWS (Phase 5+)
+# Resend (Phase 5+)
 
-AWS_REGION=
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-SES_FROM_EMAIL=
-SES_TO_EMAIL=
+RESEND_API_KEY=
 
 # Upstash Redis (Phase 5+)
 

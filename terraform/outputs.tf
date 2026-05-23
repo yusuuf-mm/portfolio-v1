@@ -13,7 +13,4 @@ output "s3_bucket_name" {
   value       = aws_s3_bucket.portfolio.bucket
 }
 
-output "ses_identity_arn" {
-  description = "SES email identity ARN"
-  value       = aws_sesv2_email_identity.sender.arn
-}
+

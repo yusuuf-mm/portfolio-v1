@@ -1,4 +1,2 @@
-aws_region     = "us-east-1"
-bucket_name    = "yusuufmm-portfolio-assets"
-ses_from_email = "yusuufmmdevs@gmail.com"
-ses_to_email   = "yusuf2000mm@gmail.com"
+aws_region  = "us-east-1"
+bucket_name = "yusuufmm-portfolio-assets"
