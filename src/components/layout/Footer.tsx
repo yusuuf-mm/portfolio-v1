@@ -59,7 +59,7 @@ export default function Footer() {
       {/* Bottom line */}
       <div className="border-t border-[var(--border)]">
         <p className="max-w-6xl mx-auto px-6 py-4 font-mono text-xs text-[var(--text-muted)] text-center">
-          {'\u00A9'} 2026 Yusuf Muhammad Musa {'\u2014'} Built with precision
+          {'\u00A9'} 2026 Yusuf Muhammad Musa. Built with precision.
         </p>
       </div>
     </footer>

@@ -20,7 +20,7 @@
     --surface: rgba(255, 255, 255, 0.04);
     --border: rgba(255, 255, 255, 0.07);
     --text-primary: #eaeaea;
-    --text-muted: #6b7280;
+    --text-muted: #8b909a;
     --accent: #b8935a;
     --accent-warm: #1c2b3a;
   }
@@ -42,12 +42,30 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition:
-      background-color 0.3s ease,
-      color 0.3s ease;
+      background-color 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+      color 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   ::selection {
     background-color: var(--accent);
     color: var(--background);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef, useMemo } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { useRef, useState, useEffect, useMemo } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Line } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -18,10 +18,11 @@ const nodes: NodeData[] = [
   { position: [0.8, -2.4, 0.5], connections: [] },
 ]
 
-function TopologyScene() {
+function TopologyScene({ inView }: { inView: boolean }) {
   const groupRef = useRef<THREE.Group>(null)
   const meshRefs = useRef<THREE.Mesh[]>([])
   const materialRefs = useRef<THREE.MeshBasicMaterial[]>([])
+  const { invalidate } = useThree()
 
   const edges = useMemo(() => {
     const result: [number, number][] = []
@@ -35,7 +36,12 @@ function TopologyScene() {
     return result
   }, [])
 
+  useEffect(() => {
+    if (inView) invalidate()
+  }, [inView, invalidate])
+
   useFrame(({ clock }) => {
+    if (!inView) return
     const t = clock.getElapsedTime()
 
     meshRefs.current.forEach((mesh, i) => {
@@ -54,6 +60,7 @@ function TopologyScene() {
     if (groupRef.current) {
       groupRef.current.rotation.y = Math.sin(t * 0.15) * 0.1
     }
+    invalidate()
   })
 
   return (
@@ -93,11 +100,28 @@ function TopologyScene() {
 }
 
 export default function SystemTopology() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [inView, setInView] = useState(true)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      rootMargin: '100px',
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      <Canvas gl={{ alpha: true }} camera={{ position: [0, 0, 5], fov: 50 }}>
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none" aria-hidden="true">
+      <Canvas
+        frameloop="demand"
+        dpr={[1, 2]}
+        gl={{ alpha: true }}
+        camera={{ position: [0, 0, 5], fov: 50 }}
+      >
         <ambientLight intensity={0.5} />
-        <TopologyScene />
+        <TopologyScene inView={inView} />
       </Canvas>
     </div>
   )
