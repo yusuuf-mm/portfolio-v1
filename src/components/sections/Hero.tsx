@@ -16,7 +16,12 @@ const bootSequence = [
   { status: 'OK', service: 'data-engineering.pipelines', message: 'streaming', nodeIndex: 1 },
   { status: 'OK', service: 'operations-research.solver', message: 'ready', nodeIndex: 4 },
   { status: 'OK', service: 'ai-systems.orchestrator', message: 'online', nodeIndex: 3 },
-  { status: 'READY', service: 'All systems nominal', message: 'Architect mode: ENABLED.', nodeIndex: 5 },
+  {
+    status: 'READY',
+    service: 'All systems nominal',
+    message: 'Architect mode: ENABLED.',
+    nodeIndex: 5,
+  },
 ]
 
 // Compact terminal commands for after boot
@@ -32,17 +37,22 @@ interface BootLine {
   message: string
 }
 
+interface CompactLine {
+  cmd: string
+  output: string
+}
+
 const ease = [0.22, 1, 0.36, 1] as const
 
-function BootTerminal({ 
-  onBootComplete, 
-  onNodeFlare 
-}: { 
+function BootTerminal({
+  onBootComplete,
+  onNodeFlare,
+}: {
   onBootComplete: () => void
-  onNodeFlare: (index: number) => void 
+  onNodeFlare: (index: number) => void
 }) {
   const [bootLines, setBootLines] = useState<BootLine[]>([])
-  const [compactLines, setCompactLines] = useState<{ cmd: string; output: string }[]>([])
+  const [compactLines, setCompactLines] = useState<CompactLine[]>([])
   const [bootComplete, setBootComplete] = useState(false)
   const [showCompact, setShowCompact] = useState(false)
   const [showCursor, setShowCursor] = useState(true)
@@ -51,7 +61,7 @@ function BootTerminal({
   // Boot sequence effect
   useEffect(() => {
     let currentIndex = 0
-    
+
     const addLine = () => {
       if (currentIndex >= bootSequence.length) {
         // Boot complete, transition to compact mode
@@ -64,8 +74,11 @@ function BootTerminal({
       }
 
       const line = bootSequence[currentIndex]
-      setBootLines(prev => [...prev, { status: line.status, service: line.service, message: line.message }])
-      
+      setBootLines((prev) => [
+        ...prev,
+        { status: line.status, service: line.service, message: line.message },
+      ])
+
       // Trigger node flare on radar
       if (line.nodeIndex >= 0) {
         onNodeFlare(line.nodeIndex)
@@ -86,7 +99,7 @@ function BootTerminal({
     let cmdIndex = 0
     const addCmd = () => {
       if (cmdIndex >= compactCommands.length) return
-      setCompactLines(prev => [...prev, compactCommands[cmdIndex]])
+      setCompactLines((prev) => [...prev, compactCommands[cmdIndex]])
       cmdIndex++
       setTimeout(addCmd, 350)
     }
@@ -96,7 +109,7 @@ function BootTerminal({
 
   // Cursor blink
   useEffect(() => {
-    const interval = setInterval(() => setShowCursor(prev => !prev), 530)
+    const interval = setInterval(() => setShowCursor((prev) => !prev), 530)
     return () => clearInterval(interval)
   }, [])
 
@@ -109,10 +122,14 @@ function BootTerminal({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'BOOT': return 'text-blue-400'
-      case 'OK': return 'text-green-400'
-      case 'READY': return 'text-bronze'
-      default: return 'text-gray-400'
+      case 'BOOT':
+        return 'text-blue-400'
+      case 'OK':
+        return 'text-green-400'
+      case 'READY':
+        return 'text-bronze'
+      default:
+        return 'text-gray-400'
     }
   }
 
@@ -132,30 +149,28 @@ function BootTerminal({
             <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
             <div className="w-3 h-3 rounded-full bg-[#28C840]" />
           </div>
-          <span className="flex-1 text-center font-mono text-xs text-[#6B7280]">
-            ~/YUSUF — ZSH
-          </span>
+          <span className="flex-1 text-center font-mono text-xs text-[#6B7280]">~/YUSUF — ZSH</span>
         </div>
 
         {/* Terminal body */}
         <div
           ref={terminalRef}
           className={cn(
-            "bg-[#0D0D0D] p-4 overflow-y-auto terminal-scanlines transition-all duration-500",
-            bootComplete ? "h-[200px]" : "h-[280px] lg:h-[320px]"
+            'bg-[#0D0D0D] p-4 overflow-y-auto terminal-scanlines transition-all duration-500',
+            bootComplete ? 'h-[200px]' : 'h-[280px] lg:h-[320px]'
           )}
         >
           <div className="font-mono text-sm space-y-1">
             {/* Boot sequence lines */}
             {bootLines.map((line, i) => (
               <motion.div
-                key={i}
+                key={`boot-${i}`}
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.15 }}
                 className="flex"
               >
-                <span className={cn("w-[70px] shrink-0", getStatusColor(line.status))}>
+                <span className={cn('w-[70px] shrink-0', getStatusColor(line.status))}>
                   [ {line.status.padEnd(5)} ]
                 </span>
                 <span className="text-[#E0E0E0] mr-2">{line.service}</span>
@@ -172,7 +187,7 @@ function BootTerminal({
                     animate={{ opacity: 1 }}
                     className="pt-3 border-t border-white/5 mt-3"
                   />
-                  {compactLines.map((line, i) => (
+                  {compactLines.map((item, i) => (
                     <motion.div
                       key={`compact-${i}`}
                       initial={{ opacity: 0, x: -10 }}
@@ -181,9 +196,9 @@ function BootTerminal({
                     >
                       <div className="flex">
                         <span className="text-bronze mr-2">$</span>
-                        <span className="text-[#E0E0E0]">{line.cmd}</span>
+                        <span className="text-[#E0E0E0]">{item.cmd}</span>
                       </div>
-                      <div className="text-[#A0A0A0] ml-4">{line.output}</div>
+                      <div className="text-[#A0A0A0] ml-4">{item.output}</div>
                     </motion.div>
                   ))}
                 </>
@@ -194,7 +209,12 @@ function BootTerminal({
             {bootComplete && compactLines.length >= compactCommands.length && (
               <div className="flex pt-1">
                 <span className="text-bronze mr-2">$</span>
-                <span className={cn('inline-block w-2 h-4 bg-bronze', showCursor ? 'opacity-100' : 'opacity-0')} />
+                <span
+                  className={cn(
+                    'inline-block w-2 h-4 bg-bronze',
+                    showCursor ? 'opacity-100' : 'opacity-0'
+                  )}
+                />
               </div>
             )}
           </div>
@@ -214,15 +234,13 @@ function ProfileCard({ visible }: { visible: boolean }) {
     >
       {/* Glass card container */}
       <div className="relative rounded-xl overflow-hidden border border-white/10 bg-white/5 dark:bg-white/[0.02] backdrop-blur-md shadow-2xl">
-        {/* Headshot */}
-        <div className="relative aspect-[4/5] w-full max-w-[320px]">
-          <Image
-            src="/headshot.jpg"
-            alt="Yusuf Muhammad Musa"
-            fill
-            className="object-cover"
-            priority
-          />
+        {/* Headshot placeholder */}
+        <div className="relative aspect-[4/5] w-full max-w-[320px] bg-gradient-to-br from-bronze/20 to-navy/20 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-24 h-24 rounded-full bg-bronze/30 mx-auto mb-4 flex items-center justify-center">
+              <span className="font-serif text-4xl text-bronze">Y</span>
+            </div>
+          </div>
           {/* Subtle gradient overlay at bottom */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </div>
@@ -232,9 +250,7 @@ function ProfileCard({ visible }: { visible: boolean }) {
           <h2 className="font-serif text-2xl text-white font-medium tracking-tight">
             Yusuf Muhammad Musa
           </h2>
-          <p className="text-bronze font-mono text-sm mt-1">
-            AI Systems Engineer
-          </p>
+          <p className="text-bronze font-mono text-sm mt-1">AI Systems Engineer</p>
           <p className="text-gray-300 text-sm mt-2 leading-relaxed">
             Building intelligent systems that optimize, decide, and scale.
           </p>
@@ -265,7 +281,7 @@ export default function Hero() {
   const [activeNodes, setActiveNodes] = useState<number[]>([])
 
   const handleNodeFlare = useCallback((index: number) => {
-    setActiveNodes(prev => [...prev, index])
+    setActiveNodes((prev) => [...prev, index])
   }, [])
 
   const handleBootComplete = useCallback(() => {
@@ -281,20 +297,19 @@ export default function Hero() {
             <motion.div
               layout
               className={cn(
-                "w-full flex flex-col gap-6 transition-all duration-700",
-                bootComplete ? "lg:w-[55%]" : "lg:w-[60%]"
+                'w-full flex flex-col gap-6 transition-all duration-700',
+                bootComplete ? 'lg:w-[55%]' : 'lg:w-[60%]'
               )}
             >
-              <BootTerminal 
-                onBootComplete={handleBootComplete} 
-                onNodeFlare={handleNodeFlare}
-              />
+              <BootTerminal onBootComplete={handleBootComplete} onNodeFlare={handleNodeFlare} />
 
               {/* 3D Radar - smaller, below terminal on mobile, inline on desktop */}
-              <div className={cn(
-                "relative transition-all duration-500",
-                bootComplete ? "h-[220px] lg:h-[200px]" : "h-[260px] lg:h-[240px]"
-              )}>
+              <div
+                className={cn(
+                  'relative transition-all duration-500',
+                  bootComplete ? 'h-[220px] lg:h-[200px]' : 'h-[260px] lg:h-[240px]'
+                )}
+              >
                 <SkillRadar activeNodes={activeNodes} compact={bootComplete} />
               </div>
 
@@ -333,10 +348,12 @@ export default function Hero() {
             </motion.div>
 
             {/* Right Side — Profile Card (appears after boot) */}
-            <div className={cn(
-              "w-full lg:w-[40%] flex justify-center lg:justify-end transition-all duration-700",
-              !bootComplete && "lg:opacity-0 lg:pointer-events-none"
-            )}>
+            <div
+              className={cn(
+                'w-full lg:w-[40%] flex justify-center lg:justify-end transition-all duration-700',
+                !bootComplete && 'lg:opacity-0 lg:pointer-events-none'
+              )}
+            >
               <ProfileCard visible={bootComplete} />
             </div>
           </div>
@@ -350,10 +367,7 @@ export default function Hero() {
         animate={{ opacity: bootComplete ? 1 : 0 }}
         transition={{ delay: 0.5 }}
       >
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-        >
+        <motion.div animate={{ y: [0, 8, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
           <div className="w-5 h-8 border border-[var(--border)] rounded-full mx-auto flex items-start justify-center pt-1.5">
             <div className="w-1 h-2 bg-bronze rounded-full" />
           </div>
