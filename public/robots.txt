@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://yusuufmm.is-a.dev/sitemap.xml
