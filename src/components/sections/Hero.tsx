@@ -42,7 +42,7 @@ interface CompactLine {
   output: string
 }
 
-const ease = [0.22, 1, 0.36, 1] as const
+const ease = [0.22, 1, 0.36, 1] as const // Boot animation easing
 
 function BootTerminal({
   onBootComplete,
