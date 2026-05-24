@@ -3,7 +3,8 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { Download, Mail, MapPin } from 'lucide-react'
-import { SiGithub, SiLinkedin } from 'react-icons/si'
+import { SiGithub } from 'react-icons/si'
+import { FaLinkedinIn } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
 
 const ease = [0.22, 1, 0.36, 1] as const
@@ -22,7 +23,7 @@ const contactLinks = [
     href: 'https://github.com/yusuuf-mm',
   },
   {
-    icon: SiLinkedin,
+    icon: FaLinkedinIn,
     label: 'LinkedIn',
     value: 'linkedin.com/in/yusuufmm',
     href: 'https://linkedin.com/in/yusuufmm',
