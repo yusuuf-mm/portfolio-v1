@@ -6,15 +6,17 @@ import { Html, OrbitControls } from '@react-three/drei'
 import * as THREE from 'three'
 
 const labels = [
-  'Software Engineering',
-  'Data Engineering',
+  'Software Eng',
+  'Data Eng',
   'Machine Learning',
   'AI Systems',
-  'Operations Research',
+  'Op Research',
   'Optimization',
 ]
 
-const values = [0.9, 0.88, 0.92, 0.95, 0.85, 0.9]
+const values = [0.92, 0.88, 0.9, 0.95, 0.93, 0.89]
+
+const bronzeColor = '#B8935A'
 
 function hexagonVertices(radius: number): [number, number, number][] {
   return Array.from({ length: 6 }, (_, i) => {
@@ -23,20 +25,33 @@ function hexagonVertices(radius: number): [number, number, number][] {
   })
 }
 
-function HexRing({ vertices, opacity }: { vertices: [number, number, number][]; opacity: number }) {
+function HexRing({ radius, opacity }: { radius: number; opacity: number }) {
   const ref = useRef<THREE.Line>(null)
+  const vertices = useMemo(() => hexagonVertices(radius), [radius])
 
   useEffect(() => {
     if (!ref.current) return
-    const points = [...vertices, vertices[0]].map((v) => new THREE.Vector3(...v))
-    ref.current.geometry.setFromPoints(points)
+    const pts = [...vertices, vertices[0]].map((v) => new THREE.Vector3(...v))
+    ref.current.geometry.setFromPoints(pts)
   }, [vertices])
 
   return (
     <line ref={ref as never}>
       <bufferGeometry />
-      <lineBasicMaterial color="#B8935A" transparent opacity={opacity} />
+      <lineBasicMaterial color={bronzeColor} transparent opacity={opacity} />
     </line>
+  )
+}
+
+function AxisLines({ radius, opacity }: { radius: number; opacity: number }) {
+  const vertices = useMemo(() => hexagonVertices(radius), [radius])
+
+  return (
+    <>
+      {vertices.map((v, i) => (
+        <AxisLine key={'axis-' + i} from={[0, 0, 0]} to={v} opacity={opacity} />
+      ))}
+    </>
   )
 }
 
@@ -59,102 +74,204 @@ function AxisLine({
   return (
     <line ref={ref as never}>
       <bufferGeometry />
-      <lineBasicMaterial color="#B8935A" transparent opacity={opacity} />
+      <lineBasicMaterial color={bronzeColor} transparent opacity={opacity} />
     </line>
   )
 }
 
+function FilledPolygon() {
+  const meshRef = useRef<THREE.Mesh>(null)
+  const lineRef = useRef<THREE.Line>(null)
+
+  useEffect(() => {
+    const verts: number[] = []
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i - Math.PI / 2
+      const r = 2.2 * values[i]
+      verts.push(Math.cos(angle) * r, 0, Math.sin(angle) * r)
+    }
+    const triangles: number[] = []
+    for (let i = 0; i < 6; i++) {
+      const next = (i + 1) % 6
+      triangles.push(0, 0, 0)
+      triangles.push(verts[i * 3], verts[i * 3 + 1], verts[i * 3 + 2])
+      triangles.push(verts[next * 3], verts[next * 3 + 1], verts[next * 3 + 2])
+    }
+    if (meshRef.current) {
+      const geo = meshRef.current.geometry
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(triangles, 3))
+      geo.computeVertexNormals()
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!lineRef.current) return
+    const pts: THREE.Vector3[] = []
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i - Math.PI / 2
+      const r = 2.2 * values[i]
+      pts.push(new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r))
+    }
+    pts.push(pts[0].clone())
+    lineRef.current.geometry.setFromPoints(pts)
+  }, [])
+
+  return (
+    <>
+      <mesh ref={meshRef}>
+        <bufferGeometry />
+        <meshBasicMaterial color={bronzeColor} transparent opacity={0.25} side={THREE.DoubleSide} />
+      </mesh>
+      <line ref={lineRef as never}>
+        <bufferGeometry />
+        <lineBasicMaterial color={bronzeColor} transparent opacity={0.7} />
+      </line>
+    </>
+  )
+}
+
+function PulseSpheres() {
+  const vertexPositions = useMemo(() => hexagonVertices(2.2), [])
+
+  return (
+    <>
+      {vertexPositions.map((pos, i) => (
+        <PulseSphere key={'pulse-' + i} position={pos} phaseOffset={i * (Math.PI / 3)} />
+      ))}
+    </>
+  )
+}
+
+function PulseSphere({
+  position,
+  phaseOffset,
+}: {
+  position: [number, number, number]
+  phaseOffset: number
+}) {
+  const ref = useRef<THREE.Mesh>(null)
+
+  useFrame(({ clock }) => {
+    if (!ref.current) return
+    const t = clock.getElapsedTime()
+    const scale = 1 + 0.8 * Math.abs(Math.sin(t * 1.5 + phaseOffset))
+    ref.current.scale.setScalar(scale)
+  })
+
+  return (
+    <mesh ref={ref} position={position}>
+      <sphereGeometry args={[0.06, 12, 12]} />
+      <meshBasicMaterial color={bronzeColor} />
+    </mesh>
+  )
+}
+
+function CenterCube() {
+  const ref = useRef<THREE.Mesh>(null)
+
+  useFrame(() => {
+    if (!ref.current) return
+    ref.current.rotation.x += 0.008
+    ref.current.rotation.y += 0.012
+    ref.current.rotation.z += 0.005
+  })
+
+  return (
+    <mesh ref={ref}>
+      <boxGeometry args={[0.4, 0.4, 0.4]} />
+      <meshBasicMaterial color={bronzeColor} wireframe opacity={0.9} transparent />
+      <pointLight color={bronzeColor} intensity={0.5} distance={3} />
+    </mesh>
+  )
+}
+
+function SkillLabel({ text, position }: { text: string; position: [number, number, number] }) {
+  return (
+    <Html
+      position={position}
+      center
+      occlude={false}
+      style={{ pointerEvents: 'none', userSelect: 'none' }}
+    >
+      <span
+        style={{
+          fontFamily: 'var(--font-geist-mono), monospace',
+          fontSize: '11px',
+          color: 'var(--text-muted)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.08em',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {text}
+      </span>
+    </Html>
+  )
+}
+
 function RadarScene({ inView }: { inView: boolean }) {
-  const groupRef = useRef<THREE.Group>(null)
+  const outerShellRef = useRef<THREE.Group>(null)
+  const innerPolygonRef = useRef<THREE.Group>(null)
   const [hovering, setHovering] = useState(false)
   const { invalidate } = useThree()
 
-  const outerHex = useMemo(() => hexagonVertices(2), [])
-  const midHex = useMemo(() => hexagonVertices(1.33), [])
-  const innerHex = useMemo(() => hexagonVertices(0.67), [])
-  const axisLabels = useMemo(() => hexagonVertices(2.5), [])
-
-  const filledShape = useMemo(() => {
-    const shape = new THREE.Shape()
-    const scaled = values.map((v, i) => {
-      const angle = (Math.PI / 3) * i - Math.PI / 2
-      return new THREE.Vector2(Math.cos(angle) * 2 * v, Math.sin(angle) * 2 * v)
-    })
-    shape.moveTo(scaled[0].x, scaled[0].y)
-    for (let i = 1; i < scaled.length; i++) {
-      shape.lineTo(scaled[i].x, scaled[i].y)
-    }
-    shape.closePath()
-    return shape
-  }, [])
+  const labelPositions = useMemo(() => hexagonVertices(2.6), [])
 
   useEffect(() => {
     if (inView) invalidate()
   }, [inView, invalidate])
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     if (!inView && !hovering) return
-    if (groupRef.current && !hovering) {
-      groupRef.current.rotation.y = clock.getElapsedTime() * 0.002
+    if (!hovering) {
+      if (outerShellRef.current) {
+        outerShellRef.current.rotation.y += 0.003
+      }
+      if (innerPolygonRef.current) {
+        innerPolygonRef.current.rotation.y += 0.004
+      }
+    }
+    if (outerShellRef.current) {
+      outerShellRef.current.rotation.x = Math.sin(Date.now() * 0.0003) * 0.15
     }
     invalidate()
   })
 
   return (
     <group
-      ref={groupRef}
       rotation={[Math.PI / 12, 0, 0]}
       onPointerEnter={() => setHovering(true)}
       onPointerLeave={() => setHovering(false)}
     >
-      {/* Filled polygon */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <shapeGeometry args={[filledShape]} />
-        <meshBasicMaterial color="#B8935A" transparent opacity={0.15} side={THREE.DoubleSide} />
-      </mesh>
+      {/* Outer hexagonal cage */}
+      <group ref={outerShellRef}>
+        <HexRing radius={2.2} opacity={0.6} />
+        <HexRing radius={1.5} opacity={0.15} />
+        <HexRing radius={0.8} opacity={0.1} />
+        <AxisLines radius={2.2} opacity={0.15} />
+        <PulseSpheres />
+        {labelPositions.map((pos, i) => (
+          <SkillLabel key={'label-' + i} text={labels[i]} position={pos} />
+        ))}
+      </group>
 
-      <HexRing vertices={outerHex} opacity={0.6} />
-      <HexRing vertices={midHex} opacity={0.1} />
-      <HexRing vertices={innerHex} opacity={0.1} />
+      {/* Inner filled polygon */}
+      <group ref={innerPolygonRef}>
+        <FilledPolygon />
+      </group>
 
-      {outerHex.map((v, i) => (
-        <AxisLine key={'axis-' + i} from={[0, 0, 0]} to={v} opacity={0.15} />
-      ))}
-
-      {outerHex.map((v, i) => (
-        <mesh key={'dot-' + i} position={v}>
-          <sphereGeometry args={[0.06, 12, 12]} />
-          <meshBasicMaterial color="#B8935A" transparent opacity={0.8} />
-        </mesh>
-      ))}
-
-      {axisLabels.map((v, i) => (
-        <Html
-          key={'label-' + i}
-          position={v}
-          center
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--font-geist-mono), monospace',
-              fontSize: '11px',
-              color: 'var(--text-muted)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {labels[i]}
-          </span>
-        </Html>
-      ))}
+      {/* Center cube — independent rotation inside the cube component */}
+      <CenterCube />
 
       {hovering && (
         <OrbitControls
           enableZoom={false}
           enablePan={false}
           autoRotate={false}
-          maxPolarAngle={Math.PI / 2}
-          minPolarAngle={Math.PI / 4}
+          dampingFactor={0.05}
+          enableDamping
+          maxPolarAngle={Math.PI * 0.75}
+          minPolarAngle={Math.PI * 0.25}
         />
       )}
     </group>
@@ -177,13 +294,13 @@ export default function SkillRadar() {
   return (
     <div ref={containerRef} className="w-full h-full" aria-hidden="true">
       <Canvas
-        frameloop="demand"
+        frameloop="always"
         dpr={[1, 2]}
-        gl={{ alpha: true }}
-        camera={{ position: [0, 3, 4], fov: 45 }}
+        gl={{ alpha: true, antialias: true }}
+        camera={{ position: [0, 0, 5.5], fov: 50 }}
       >
-        <ambientLight intensity={0.5} />
-        <pointLight position={[5, 5, 5]} intensity={0.3} />
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[5, 5, 5]} intensity={0.3} />
         <RadarScene inView={inView} />
       </Canvas>
     </div>

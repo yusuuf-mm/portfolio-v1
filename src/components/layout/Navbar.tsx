@@ -1,6 +1,8 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Menu } from 'lucide-react'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import { cn } from '@/lib/utils'
 
@@ -9,10 +11,12 @@ const links = ['About', 'Build', 'Projects', 'Stack', 'Contact']
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeSection, setActiveSection] = useState('')
-  const [compact, setCompact] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
+  // Scroll detection
   useEffect(() => {
-    const onScroll = () => setCompact(window.scrollY > 100)
+    const onScroll = () => setScrolled(window.scrollY > 50)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
@@ -30,13 +34,25 @@ export default function Navbar() {
             setActiveSection(id)
           }
         },
-        { rootMargin: '-40% 0px -40% 0px' }
+        { threshold: 0.4 }
       )
       observer.observe(el)
       observers.push(observer)
     })
     return () => observers.forEach((o) => o.disconnect())
   }, [])
+
+  // Close mobile menu on outside click
+  useEffect(() => {
+    if (!menuOpen) return
+    const handleClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [menuOpen])
 
   // Lock body scroll when menu is open
   useEffect(() => {
@@ -47,146 +63,126 @@ export default function Navbar() {
   }, [menuOpen])
 
   return (
-    <>
-      <header className="fixed top-6 left-0 right-0 z-50 flex justify-center pointer-events-none">
-        <nav
+    <header
+      className="fixed top-5 left-1/2 z-[1000] pointer-events-none"
+      style={{ transform: 'translateX(-50%)' }}
+    >
+      <nav
+        ref={menuRef}
+        className={cn(
+          'pointer-events-auto flex items-center gap-1 rounded-full',
+          'transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]',
+          'h-12 px-2 max-w-[600px]'
+        )}
+        style={{
+          background: 'var(--navbar-bg)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          border: '1px solid var(--navbar-border)',
+          boxShadow: scrolled ? 'var(--navbar-shadow-scrolled)' : 'var(--navbar-shadow)',
+          opacity: scrolled ? 1 : 0.9,
+        }}
+      >
+        {/* Logo */}
+        <a
+          href="#"
           className={cn(
-            'pointer-events-auto flex items-center gap-1 px-2 py-2 rounded-full',
-            'backdrop-blur-xl border border-[var(--border)]',
-            'transition-all duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]'
+            'font-mono text-sm font-semibold px-4 py-1.5 rounded-full',
+            'text-[var(--accent-warm)] hover:opacity-80 transition-opacity'
           )}
-          style={{
-            background: compact
-              ? 'color-mix(in srgb, var(--background) 90%, transparent)'
-              : 'color-mix(in srgb, var(--background) 70%, transparent)',
-            paddingTop: compact ? '6px' : '8px',
-            paddingBottom: compact ? '6px' : '8px',
-          }}
         >
-          {/* Logo */}
-          <a
-            href="#"
-            className="font-mono text-xs text-[var(--accent)] px-3 py-1.5 hover:opacity-80 transition-opacity"
-          >
-            y
-          </a>
+          YM
+        </a>
 
-          {/* Desktop links */}
-          <div className="hidden md:flex items-center gap-0.5">
-            {links.map((link) => {
-              const id = link.toLowerCase()
-              const isActive = activeSection === id
-              return (
-                <a
-                  key={link}
-                  href={'#' + id}
-                  className={cn(
-                    'px-3 py-1.5 rounded-full font-mono text-xs transition-all duration-200',
-                    isActive
-                      ? 'text-[var(--accent)]'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                  )}
-                  style={
-                    isActive
-                      ? { background: 'color-mix(in srgb, var(--accent) 10%, transparent)' }
-                      : undefined
-                  }
-                >
-                  {link}
-                </a>
-              )
-            })}
-          </div>
-
-          {/* Theme toggle + hamburger */}
-          <div className="flex items-center gap-1 ml-1">
-            <ThemeToggle />
-            <button
-              className="md:hidden p-2 rounded-full text-[var(--text-muted)] hover:text-[var(--accent)] min-h-[36px] min-w-[36px] flex items-center justify-center transition-colors"
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              aria-expanded={menuOpen}
-            >
-              <svg
-                width="16"
-                height="12"
-                viewBox="0 0 16 12"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
+        {/* Desktop links */}
+        <div className="hidden md:flex items-center gap-0.5">
+          {links.map((link) => {
+            const id = link.toLowerCase()
+            const isActive = activeSection === id
+            return (
+              <a
+                key={link}
+                href={'#' + id}
+                className={cn(
+                  'px-3 py-1.5 rounded-full transition-all duration-200',
+                  'font-mono text-sm',
+                  isActive
+                    ? 'text-[var(--accent-warm)] font-medium'
+                    : 'text-[var(--text-muted)] hover:text-[var(--accent-warm)]'
+                )}
               >
-                <line
-                  x1="0"
-                  y1="1"
-                  x2="16"
-                  y2="1"
-                  style={{
-                    transformOrigin: 'center',
-                    transform: menuOpen ? 'translateY(5px) rotate(45deg)' : 'none',
-                    transition: 'transform 0.3s cubic-bezier(0.32,0.72,0,1)',
-                  }}
-                />
-                <line
-                  x1="0"
-                  y1="6"
-                  x2="16"
-                  y2="6"
-                  style={{
-                    opacity: menuOpen ? 0 : 1,
-                    transform: menuOpen ? 'scaleX(0)' : 'none',
-                    transition: 'all 0.2s cubic-bezier(0.32,0.72,0,1)',
-                  }}
-                />
-                <line
-                  x1="0"
-                  y1="11"
-                  x2="16"
-                  y2="11"
-                  style={{
-                    transformOrigin: 'center',
-                    transform: menuOpen ? 'translateY(-5px) rotate(-45deg)' : 'none',
-                    transition: 'transform 0.3s cubic-bezier(0.32,0.72,0,1)',
-                  }}
-                />
-              </svg>
-            </button>
-          </div>
-        </nav>
-      </header>
+                {link}
+              </a>
+            )
+          })}
+        </div>
 
-      {/* Mobile menu overlay */}
+        {/* Theme toggle + hamburger */}
+        <div className="flex items-center gap-1 ml-1 mr-1">
+          <ThemeToggle />
+          <button
+            className={cn(
+              'md:hidden p-2 rounded-full min-h-[36px] min-w-[36px]',
+              'flex items-center justify-center transition-colors',
+              'text-[var(--text-muted)] hover:text-[var(--accent-warm)]'
+            )}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+          >
+            <Menu size={16} />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile dropdown */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            className="fixed inset-0 z-40 backdrop-blur-2xl flex flex-col items-center justify-center gap-8"
-            style={{ background: 'rgba(8,9,12,0.92)' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.32, 0.72, 0, 1] }}
+            className={cn('pointer-events-auto mt-2 rounded-2xl overflow-hidden md:hidden')}
+            style={{
+              background: 'var(--navbar-bg)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '1px solid var(--navbar-border)',
+              boxShadow: 'var(--navbar-shadow)',
+            }}
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
           >
-            {links.map((link, i) => (
-              <motion.a
-                key={link}
-                href={'#' + link.toLowerCase()}
-                onClick={() => setMenuOpen(false)}
-                className={cn(
-                  'font-mono text-2xl transition-colors',
-                  activeSection === link.toLowerCase()
-                    ? 'text-[var(--accent)]'
-                    : 'text-[var(--text-primary)] hover:text-[var(--accent)]'
-                )}
-                initial={{ opacity: 0, y: 24 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
-                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {link}
-              </motion.a>
-            ))}
+            <div className="py-2 px-2 flex flex-col">
+              {links.map((link, i) => {
+                const id = link.toLowerCase()
+                const isActive = activeSection === id
+                return (
+                  <motion.a
+                    key={link}
+                    href={'#' + id}
+                    onClick={() => setMenuOpen(false)}
+                    className={cn(
+                      'px-4 py-2.5 rounded-full font-mono text-sm transition-colors',
+                      isActive
+                        ? 'text-[var(--accent-warm)] font-medium'
+                        : 'text-[var(--text-muted)] hover:text-[var(--accent-warm)]'
+                    )}
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      delay: i * 0.05,
+                      duration: 0.25,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                  >
+                    {link}
+                  </motion.a>
+                )
+              })}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </header>
   )
 }

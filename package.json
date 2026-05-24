@@ -33,6 +33,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@fontsource/instrument-serif": "^5.2.8",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

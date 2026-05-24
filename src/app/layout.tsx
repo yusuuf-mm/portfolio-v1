@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
-import { Instrument_Serif } from 'next/font/google'
+import localFont from 'next/font/local'
 import { ThemeProvider } from 'next-themes'
 import './globals.css'
 
-const instrumentSerif = Instrument_Serif({
-  weight: '400',
-  subsets: ['latin'],
+const instrumentSerif = localFont({
+  src: '../../public/fonts/InstrumentSerif-Regular.woff2',
   variable: '--font-instrument-serif',
   display: 'swap',
 })
