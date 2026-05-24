@@ -187,20 +187,23 @@ function BootTerminal({
                     animate={{ opacity: 1 }}
                     className="pt-3 border-t border-white/5 mt-3"
                   />
-                  {compactLines.map((item, i) => (
-                    <motion.div
-                      key={`compact-${i}`}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="flex">
-                        <span className="text-bronze mr-2">$</span>
-                        <span className="text-[#E0E0E0]">{item.cmd}</span>
-                      </div>
-                      <div className="text-[#A0A0A0] ml-4">{item.output}</div>
-                    </motion.div>
-                  ))}
+                  {compactLines.map((item, i) => {
+                    if (!item) return null
+                    return (
+                      <motion.div
+                        key={`compact-${i}`}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <div className="flex">
+                          <span className="text-bronze mr-2">$</span>
+                          <span className="text-[#E0E0E0]">{item.cmd}</span>
+                        </div>
+                        <div className="text-[#A0A0A0] ml-4">{item.output}</div>
+                      </motion.div>
+                    )
+                  })}
                 </>
               )}
             </AnimatePresence>
