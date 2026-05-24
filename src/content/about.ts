@@ -1,45 +1,45 @@
 export const narrative = {
   heading: 'The Engineer Behind the Systems',
   paragraphs: [
-    'I started as a software engineer. Shipped code, broke things, fixed them. Learned what it actually takes to build something that holds up.',
-    'Then I went deeper. Machine learning, data science, data engineering. Not because it was trending, but because I wanted to understand how intelligence gets built from the ground up.',
-    "Now I work at the intersection of all of it. I build AI systems that don't just run models. They make decisions, optimize outcomes, and adapt. Operations Research is the core. Everything else is the stack.",
+    "I started as a software engineer. Shipped code, broke things, fixed them. Learned what it actually takes to build something that holds up.",
+    "Then I went deeper — machine learning, data science, data engineering. Not because it was trending, but because I wanted to understand how intelligence gets built from the ground up.",
+    "Now I work at the intersection of all of it. I build AI systems that don't just run models — they make decisions, optimize outcomes, and adapt. Operations Research is the core. Everything else is the stack.",
   ],
 }
 
 export const journey = [
   {
-    role: 'Software Engineering',
-    period: 'Foundation',
     tag: 'SE',
+    role: 'Software Engineering',
     description: 'Where it started',
+    isCurrent: false,
   },
   {
-    role: 'Machine Learning & Data Science',
-    period: 'Growth',
     tag: 'ML',
-    description: 'Pattern recognition at scale',
+    role: 'Machine Learning & DS',
+    description: 'Teaching machines to see patterns',
+    isCurrent: false,
   },
   {
-    role: 'Data Engineering',
-    period: 'Expansion',
     tag: 'DE',
-    description: 'Pipelines behind intelligence',
+    role: 'Data Engineering',
+    description: 'Architecting the pipelines',
+    isCurrent: false,
   },
   {
-    role: 'AI Systems + Operations Research',
-    period: 'Now',
     tag: 'AI',
-    description: 'Optimization meets intelligence',
+    role: 'AI Systems + OR',
+    description: 'Where I live now',
+    isCurrent: true,
   },
 ]
 
 export const pillars = [
   {
-    icon: 'Brain',
+    icon: 'RiBrainLine',
     title: 'Intelligent Systems',
     description:
-      'I integrate AI models into production systems as decision-making engines embedded in real workflows, not demos.',
+      "I integrate AI models into production systems — not as demos, but as decision-making engines embedded in real workflows.",
     specifics: [
       'Claude API, Gemini, HuggingFace model integration',
       'Agentic workflows and orchestration',
@@ -49,10 +49,10 @@ export const pillars = [
     badges: ['Claude API', 'Gemini', 'LangChain', 'Python'],
   },
   {
-    icon: 'GitBranch',
+    icon: 'RiLineChartLine',
     title: 'Optimization & Decision Models',
     description:
-      'With a background in operations research, I build mathematical models that prescribe the best action, not just predict.',
+      "With a background in operations research, I build mathematical models that don't just predict — they prescribe the best action.",
     specifics: [
       'Linear and integer programming',
       'Descriptive, predictive, prescriptive analytics',
@@ -62,10 +62,10 @@ export const pillars = [
     badges: ['OR-Tools', 'PuLP', 'PyTorch', 'SciPy'],
   },
   {
-    icon: 'Layers',
+    icon: 'RiStackLine',
     title: 'End-to-End Engineering',
     description:
-      'From raw data to deployed model to cloud infrastructure. I own the full stack without handing off to three different teams.',
+      "From raw data to deployed model to cloud infrastructure — I can own the full stack without handing off to three different teams.",
     specifics: [
       'Data pipelines and feature engineering',
       'Model training, evaluation, deployment',

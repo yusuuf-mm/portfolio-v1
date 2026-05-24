@@ -1,7 +1,7 @@
 'use client'
 
-import { useRef, useState, useEffect } from 'react'
-import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { useRef, useEffect } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 
 interface NodeData {
@@ -30,7 +30,7 @@ nodes.forEach((node, i) => {
   })
 })
 
-function OrchestrationScene({ inView }: { inView: boolean }) {
+function OrchestrationScene() {
   const groupRef = useRef<THREE.Group>(null)
   const meshRefs = useRef<THREE.Mesh[]>([])
   const lineRef = useRef<THREE.LineSegments>(null)
@@ -38,7 +38,6 @@ function OrchestrationScene({ inView }: { inView: boolean }) {
   const positionsRef = useRef<THREE.Vector3[]>(
     nodes.map((n) => new THREE.Vector3(...n.basePosition))
   )
-  const { invalidate } = useThree()
 
   useEffect(() => {
     const geom = new THREE.BufferGeometry()
@@ -64,12 +63,7 @@ function OrchestrationScene({ inView }: { inView: boolean }) {
     }
   }, [])
 
-  useEffect(() => {
-    if (inView) invalidate()
-  }, [inView, invalidate])
-
   useFrame(({ clock }) => {
-    if (!inView) return
     const t = clock.getElapsedTime()
     const positions = positionsRef.current
 
@@ -101,7 +95,6 @@ function OrchestrationScene({ inView }: { inView: boolean }) {
     if (groupRef.current) {
       groupRef.current.rotation.y = Math.sin(t * 0.1) * 0.05
     }
-    invalidate()
   })
 
   return (
@@ -128,28 +121,11 @@ function OrchestrationScene({ inView }: { inView: boolean }) {
 }
 
 export default function OrchestrationNodes() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [inView, setInView] = useState(true)
-
-  useEffect(() => {
-    if (!containerRef.current) return
-    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
-      rootMargin: '100px',
-    })
-    observer.observe(containerRef.current)
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <div ref={containerRef} className="absolute inset-0 pointer-events-none" aria-hidden="true">
-      <Canvas
-        frameloop="demand"
-        dpr={[1, 2]}
-        gl={{ alpha: true }}
-        camera={{ position: [0, 0, 5], fov: 50 }}
-      >
+    <div className="absolute inset-0 pointer-events-none">
+      <Canvas gl={{ alpha: true }} camera={{ position: [0, 0, 5], fov: 50 }}>
         <ambientLight intensity={0.5} />
-        <OrchestrationScene inView={inView} />
+        <OrchestrationScene />
       </Canvas>
     </div>
   )

@@ -10,10 +10,10 @@ export default function GlassCard({ children, className, hover = false }: GlassC
   return (
     <div
       className={cn(
-        'rounded-lg border backdrop-blur-xl',
+        'rounded-xl border backdrop-blur-sm',
         'bg-[var(--surface)] border-[var(--border)]',
-        'shadow-[0_4px_24px_rgba(0,0,0,0.08)]',
-        hover && 'transition-all duration-300 hover:border-bronze/40 hover:shadow-lg hover:shadow-bronze/5',
+        hover &&
+          'transition-all duration-300 hover:border-[var(--accent)] hover:bg-[var(--surface)]',
         className
       )}
     >
