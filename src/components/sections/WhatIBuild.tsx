@@ -1,20 +1,17 @@
 'use client'
 
 import { useRef } from 'react'
-import dynamic from 'next/dynamic'
 import { motion, useInView } from 'framer-motion'
-import { Brain, GitBranch, Layers, type LucideIcon } from 'lucide-react'
+import { RiBrainLine, RiLineChartLine, RiStackLine } from 'react-icons/ri'
 import { cn } from '@/lib/utils'
 import GlassCard from '@/components/ui/GlassCard'
 import Badge from '@/components/ui/Badge'
 import { pillars } from '@/content/about'
 
-const SystemTopology = dynamic(() => import('@/components/three/SystemTopology'), { ssr: false })
-
-const iconMap: Record<string, LucideIcon> = {
-  Brain,
-  GitBranch,
-  Layers,
+const iconMap = {
+  RiBrainLine,
+  RiLineChartLine,
+  RiStackLine,
 }
 
 const cardVariants = {
@@ -25,7 +22,7 @@ const cardVariants = {
     scale: 1,
     transition: {
       duration: 0.6,
-      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+      ease: [0.22, 1, 0.36, 1],
       delay: 0.2 + i * 0.15,
     },
   }),
@@ -39,14 +36,9 @@ export default function WhatIBuild() {
     <section
       id="build"
       ref={sectionRef}
-      className={cn('relative py-24 lg:py-32 bg-[var(--background)] overflow-hidden')}
+      className="py-24 lg:py-32 bg-[var(--background)]"
     >
-      {/* 3D background */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none">
-        <SystemTopology />
-      </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-16">
+      <div className="max-w-6xl mx-auto px-6 lg:px-16">
         {/* Header */}
         <motion.div
           className="flex flex-col gap-4 mb-16"
@@ -54,20 +46,19 @@ export default function WhatIBuild() {
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="flex items-center gap-2 font-mono text-sm text-[var(--accent)]">
-            <span>{'>'}</span>
-            <span>yusuf.sys ~ capabilities</span>
-          </div>
+          <span className="font-mono text-sm text-bronze">
+            {'\u276F'} yusuf.sys ~ capabilities
+          </span>
 
-          <h2 className="font-serif text-3xl lg:text-5xl text-[var(--text-primary)] tracking-tight leading-tight max-w-2xl">
+          <h2 className="font-serif text-3xl lg:text-5xl text-[var(--text-primary)] tracking-tight leading-tight max-w-3xl text-balance">
             Three things I do that most engineers treat as separate disciplines
           </h2>
         </motion.div>
 
-        {/* Pillars */}
+        {/* Pillar cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {pillars.map((pillar, i) => {
-            const Icon = iconMap[pillar.icon]
+            const Icon = iconMap[pillar.icon as keyof typeof iconMap]
 
             return (
               <motion.div
@@ -77,11 +68,18 @@ export default function WhatIBuild() {
                 initial="hidden"
                 animate={isInView ? 'visible' : 'hidden'}
               >
-                <GlassCard hover className="p-6 lg:p-8 flex flex-col gap-5 h-full">
+                <GlassCard
+                  hover
+                  className="p-6 lg:p-8 flex flex-col gap-5 h-full border-l-2 border-l-bronze"
+                >
                   {/* Icon */}
-                  <div className="w-10 h-10 flex items-center justify-center border border-[var(--border)] rounded-lg bg-[var(--surface)]">
-                    <Icon size={20} className="text-[var(--accent)]" />
-                  </div>
+                  <motion.div
+                    className="w-12 h-12 flex items-center justify-center rounded-lg bg-[var(--surface)] border border-[var(--border)]"
+                    whileHover={{ scale: 1.15 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                  >
+                    <Icon className="w-7 h-7 text-bronze" />
+                  </motion.div>
 
                   {/* Title */}
                   <h3 className="font-mono text-lg font-semibold text-[var(--text-primary)]">
@@ -100,14 +98,14 @@ export default function WhatIBuild() {
                         key={item}
                         className="flex items-start gap-2 font-mono text-xs text-[var(--text-muted)]"
                       >
-                        <span className="text-[var(--accent)] mt-0.5">{'>'}</span>
+                        <span className="text-bronze mt-0.5">{'\u00B7'}</span>
                         <span>{item}</span>
                       </li>
                     ))}
                   </ul>
 
                   {/* Badges */}
-                  <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)]">
+                  <div className="flex flex-wrap gap-2 pt-4 border-t border-[var(--border)]">
                     {pillar.badges.map((badge) => (
                       <Badge key={badge} label={badge} />
                     ))}

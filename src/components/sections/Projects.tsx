@@ -1,37 +1,265 @@
 'use client'
 
 import { useRef } from 'react'
-import dynamic from 'next/dynamic'
 import { motion, useInView } from 'framer-motion'
 import { ExternalLink } from 'lucide-react'
+import { SiGithub } from 'react-icons/si'
 import { cn } from '@/lib/utils'
-import GlassCard from '@/components/ui/GlassCard'
 import Badge from '@/components/ui/Badge'
 import { projects } from '@/content/projects'
-
-const OrchestrationNodes = dynamic(() => import('@/components/three/OrchestrationNodes'), {
-  ssr: false,
-})
 
 const featured = projects.filter((p) => p.featured)
 const compact = projects.filter((p) => !p.featured)
 
-const statusStyles: Record<string, string> = {
-  Live: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-  Complete: 'bg-[var(--accent)]/10 text-[var(--accent)] border-[var(--accent)]/20',
+const statusStyles = {
+  Live: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+  Complete: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
   'In Development': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-}
+} as const
 
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: { status: keyof typeof statusStyles }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center px-2.5 py-0.5 text-xs font-mono border rounded-sm',
-        statusStyles[status] || statusStyles['Complete']
+        'absolute top-4 right-4 inline-flex items-center px-2.5 py-1 text-xs font-mono border rounded',
+        statusStyles[status]
       )}
     >
       {status}
     </span>
+  )
+}
+
+function ProjectBanner({
+  gradient,
+  animation,
+  title,
+  subtitle,
+  status,
+  isFeatured,
+}: {
+  gradient: string
+  animation?: 'grid' | 'lines' | 'dots'
+  title: string
+  subtitle: string
+  status: keyof typeof statusStyles
+  isFeatured: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'relative overflow-hidden',
+        isFeatured ? 'h-[200px]' : 'h-[80px]',
+        gradient
+      )}
+    >
+      {/* Animation overlay */}
+      {animation === 'grid' && <div className="absolute inset-0 animated-grid" />}
+      {animation === 'lines' && <div className="absolute inset-0 flowing-lines overflow-hidden" />}
+      {animation === 'dots' && <div className="absolute inset-0 pulsing-dots" />}
+
+      {/* Mockup frame */}
+      <div className="absolute inset-4 border border-white/10 rounded-sm">
+        <div className="absolute top-2 left-3 flex gap-1.5">
+          <div className="w-2 h-2 rounded-full bg-white/20" />
+          <div className="w-2 h-2 rounded-full bg-white/20" />
+          <div className="w-2 h-2 rounded-full bg-white/20" />
+        </div>
+        <span className="absolute top-2 right-3 font-mono text-[10px] text-white/40">
+          // preview
+        </span>
+      </div>
+
+      {/* Status badge */}
+      <StatusBadge status={status} />
+
+      {/* Title overlay for featured projects */}
+      {isFeatured && (
+        <div className="absolute bottom-4 left-4 right-4">
+          <h3 className="font-serif text-xl lg:text-2xl text-white mb-1">{title}</h3>
+          <p className="font-mono text-xs text-white/60">{subtitle}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function FeaturedCard({ project, index }: { project: typeof projects[0]; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{
+        duration: 0.6,
+        ease: [0.22, 1, 0.36, 1],
+        delay: 0.1 + index * 0.1,
+      }}
+      className="group"
+    >
+      <div
+        className={cn(
+          'rounded-lg overflow-hidden h-full',
+          'bg-[var(--surface)] backdrop-blur-xl',
+          'border border-[var(--border)]',
+          'transition-all duration-300',
+          'hover:border-bronze/30 hover:shadow-lg hover:shadow-bronze/5'
+        )}
+      >
+        {/* Banner */}
+        <ProjectBanner
+          gradient={project.gradient}
+          animation={project.animation}
+          title={project.title}
+          subtitle={project.subtitle}
+          status={project.status}
+          isFeatured
+        />
+
+        {/* Content */}
+        <div className="p-6 flex flex-col gap-4">
+          {/* Type */}
+          <span className="font-mono text-xs text-[var(--text-muted)]">{project.type}</span>
+
+          {/* Description */}
+          <p className="font-sans text-sm text-[var(--text-muted)] leading-relaxed">
+            {project.description}
+          </p>
+
+          {/* Highlights */}
+          <ul className="flex flex-col gap-2 flex-1">
+            {project.highlights.map((h) => (
+              <li
+                key={h}
+                className="flex items-start gap-2 font-mono text-xs text-[var(--text-muted)]"
+              >
+                <span className="text-bronze mt-0.5">{'\u203A'}</span>
+                <span>{h}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Stack badges */}
+          <div className="flex flex-wrap gap-2 pt-4 border-t border-[var(--border)]">
+            {project.stack.slice(0, 6).map((tool) => (
+              <Badge key={tool} label={tool} />
+            ))}
+            {project.stack.length > 6 && (
+              <span className="font-mono text-xs text-[var(--text-muted)] self-center">
+                +{project.stack.length - 6}
+              </span>
+            )}
+          </div>
+
+          {/* Links */}
+          <div className="flex items-center gap-4 pt-2">
+            {project.github && (
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 font-mono text-xs text-[var(--text-muted)] hover:text-bronze transition-colors"
+              >
+                <SiGithub size={14} />
+                GitHub
+              </a>
+            )}
+            {project.demo && (
+              <a
+                href={project.demo}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 font-mono text-xs text-bronze hover:opacity-80 transition-opacity"
+              >
+                <ExternalLink size={14} />
+                Live Demo
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function CompactCard({ project, index }: { project: typeof projects[0]; index: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: '-100px' }}
+      transition={{
+        duration: 0.5,
+        ease: [0.22, 1, 0.36, 1],
+        delay: 0.3 + index * 0.1,
+      }}
+      className="group"
+    >
+      <div
+        className={cn(
+          'rounded-lg overflow-hidden h-full',
+          'bg-[var(--surface)] backdrop-blur-xl',
+          'border border-[var(--border)]',
+          'transition-all duration-300',
+          'hover:border-bronze/30'
+        )}
+      >
+        {/* Banner */}
+        <ProjectBanner
+          gradient={project.gradient}
+          title={project.title}
+          subtitle={project.subtitle}
+          status={project.status}
+          isFeatured={false}
+        />
+
+        {/* Content */}
+        <div className="p-5 flex flex-col gap-3">
+          {/* Title + subtitle */}
+          <div>
+            <h3 className="font-mono text-base font-semibold text-[var(--text-primary)]">
+              {project.title}
+            </h3>
+            <p className="font-mono text-xs text-bronze">{project.subtitle}</p>
+          </div>
+
+          {/* Type */}
+          <span className="font-mono text-xs text-[var(--text-muted)]">{project.type}</span>
+
+          {/* Description */}
+          <p className="font-sans text-sm text-[var(--text-muted)] leading-relaxed">
+            {project.description}
+          </p>
+
+          {/* Stack badges */}
+          <div className="flex flex-wrap gap-2 pt-3 border-t border-[var(--border)]">
+            {project.stack.slice(0, 4).map((tool) => (
+              <Badge key={tool} label={tool} />
+            ))}
+            {project.stack.length > 4 && (
+              <span className="font-mono text-xs text-[var(--text-muted)] self-center">
+                +{project.stack.length - 4}
+              </span>
+            )}
+          </div>
+
+          {/* Links */}
+          {project.github && (
+            <div className="flex items-center gap-4 pt-2">
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 font-mono text-xs text-[var(--text-muted)] hover:text-bronze transition-colors"
+              >
+                <SiGithub size={14} />
+                GitHub
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
   )
 }
 
@@ -43,31 +271,22 @@ export default function Projects() {
     <section
       id="projects"
       ref={sectionRef}
-      className={cn('relative py-24 lg:py-32 bg-[var(--background)] overflow-hidden')}
+      className="py-24 lg:py-32 bg-[var(--background)]"
     >
-      {/* 3D background */}
-      <div className="absolute inset-0 opacity-40 pointer-events-none">
-        <OrchestrationNodes />
-      </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-6 lg:px-16">
+      <div className="max-w-6xl mx-auto px-6 lg:px-16">
         {/* Header */}
         <motion.div
           className="flex flex-col gap-4 mb-16"
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-          transition={{
-            duration: 0.6,
-            ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-          }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="flex items-center gap-2 font-mono text-sm text-[var(--accent)]">
-            <span>{'>'}</span>
-            <span>yusuf.sys ~ projects</span>
-          </div>
+          <span className="font-mono text-sm text-bronze">
+            {'\u276F'} yusuf.sys ~ projects
+          </span>
 
           <h2 className="font-serif text-3xl lg:text-5xl text-[var(--text-primary)] tracking-tight leading-tight">
-            Systems I{"'"}ve Built
+            Systems I&apos;ve Built
           </h2>
 
           <p className="font-mono text-sm text-[var(--text-muted)] max-w-md">
@@ -76,168 +295,16 @@ export default function Projects() {
         </motion.div>
 
         {/* Featured cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           {featured.map((project, i) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 30 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-              transition={{
-                duration: 0.6,
-                ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-                delay: 0.2 + i * 0.12,
-              }}
-            >
-              <GlassCard
-                hover
-                className="p-6 lg:p-8 flex flex-col gap-4 h-full border-l-2 border-l-[var(--accent)]"
-              >
-                {/* Top row */}
-                <div className="flex items-center gap-3 flex-wrap">
-                  <StatusBadge status={project.status} />
-                  <span className="font-mono text-xs text-[var(--text-muted)]">{project.type}</span>
-                </div>
-
-                {/* Title + subtitle */}
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-mono text-lg lg:text-xl font-semibold text-[var(--text-primary)]">
-                    {project.title}
-                  </h3>
-                  <p className="font-sans text-sm text-[var(--accent)]">{project.subtitle}</p>
-                </div>
-
-                {/* Description */}
-                <p className="font-sans text-sm text-[var(--text-muted)] leading-relaxed">
-                  {project.description}
-                </p>
-
-                {/* Highlights */}
-                <ul className="flex flex-col gap-1.5 flex-1">
-                  {project.highlights.slice(0, 3).map((h) => (
-                    <li
-                      key={h}
-                      className="flex items-start gap-2 font-mono text-xs text-[var(--text-muted)]"
-                    >
-                      <span className="text-[var(--accent)] mt-0.5">{'\u203A'}</span>
-                      <span>{h}</span>
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Stack badges */}
-                <div className="flex flex-wrap gap-2 pt-3 border-t border-[var(--border)]">
-                  {project.stack.slice(0, 5).map((tool) => (
-                    <Badge key={tool} label={tool} />
-                  ))}
-                  {project.stack.length > 5 && (
-                    <span className="font-mono text-xs text-[var(--text-muted)] self-center">
-                      +{project.stack.length - 5}
-                    </span>
-                  )}
-                </div>
-
-                {/* Links */}
-                <div className="flex items-center gap-4 pt-2">
-                  {project.github && (
-                    <a
-                      href={project.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 font-mono text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
-                    >
-                      <ExternalLink size={12} />
-                      GitHub
-                    </a>
-                  )}
-                  {project.demo && (
-                    <a
-                      href={project.demo}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 font-mono text-xs text-[var(--accent)] hover:opacity-80 transition-opacity"
-                    >
-                      <ExternalLink size={12} />
-                      Live Demo
-                    </a>
-                  )}
-                </div>
-              </GlassCard>
-            </motion.div>
+            <FeaturedCard key={project.id} project={project} index={i} />
           ))}
         </div>
 
         {/* Compact cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {compact.map((project, i) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-              transition={{
-                duration: 0.5,
-                ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-                delay: 0.5 + i * 0.1,
-              }}
-            >
-              <GlassCard hover className="p-5 lg:p-6 flex flex-col gap-3 h-full">
-                {/* Top row */}
-                <div className="flex items-center gap-3 flex-wrap">
-                  <StatusBadge status={project.status} />
-                  <span className="font-mono text-xs text-[var(--text-muted)]">{project.type}</span>
-                </div>
-
-                {/* Title + subtitle */}
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-mono text-base font-semibold text-[var(--text-primary)]">
-                    {project.title}
-                  </h3>
-                  <p className="font-sans text-sm text-[var(--accent)]">{project.subtitle}</p>
-                </div>
-
-                {/* Description */}
-                <p className="font-sans text-sm text-[var(--text-muted)] leading-relaxed">
-                  {project.description}
-                </p>
-
-                {/* Stack badges */}
-                <div className="flex flex-wrap gap-2 pt-2 border-t border-[var(--border)]">
-                  {project.stack.slice(0, 4).map((tool) => (
-                    <Badge key={tool} label={tool} />
-                  ))}
-                  {project.stack.length > 4 && (
-                    <span className="font-mono text-xs text-[var(--text-muted)] self-center">
-                      +{project.stack.length - 4}
-                    </span>
-                  )}
-                </div>
-
-                {/* Links */}
-                <div className="flex items-center gap-4 pt-1">
-                  {project.github && (
-                    <a
-                      href={project.github}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 font-mono text-xs text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
-                    >
-                      <ExternalLink size={12} />
-                      GitHub
-                    </a>
-                  )}
-                  {project.demo && (
-                    <a
-                      href={project.demo}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 font-mono text-xs text-[var(--accent)] hover:opacity-80 transition-opacity"
-                    >
-                      <ExternalLink size={12} />
-                      Live Demo
-                    </a>
-                  )}
-                </div>
-              </GlassCard>
-            </motion.div>
+            <CompactCard key={project.id} project={project} index={i} />
           ))}
         </div>
       </div>
