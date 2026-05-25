@@ -12,10 +12,6 @@
     --text-muted: #6b7280;
     --accent: #1c2b3a;
     --accent-warm: #b8935a;
-    --navbar-bg: rgba(244, 242, 238, 0.85);
-    --navbar-border: rgba(0, 0, 0, 0.1);
-    --navbar-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-    --navbar-shadow-scrolled: 0 4px 24px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.06);
   }
 
   .dark {
@@ -24,13 +20,9 @@
     --surface: rgba(255, 255, 255, 0.04);
     --border: rgba(255, 255, 255, 0.07);
     --text-primary: #eaeaea;
-    --text-muted: #8b909a;
+    --text-muted: #6b7280;
     --accent: #b8935a;
     --accent-warm: #1c2b3a;
-    --navbar-bg: rgba(13, 13, 18, 0.85);
-    --navbar-border: rgba(255, 255, 255, 0.08);
-    --navbar-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
-    --navbar-shadow-scrolled: 0 4px 32px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
   }
 
   * {
@@ -50,12 +42,12 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transition:
-      background-color 0.3s cubic-bezier(0.32, 0.72, 0, 1),
-      color 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+      background-color 0.3s ease,
+      color 0.3s ease;
   }
 
   ::selection {
-    background-color: var(--accent);
+    background-color: var(--accent-warm);
     color: var(--background);
   }
 
@@ -71,9 +63,141 @@
   p {
     text-wrap: pretty;
   }
+}
 
-  :focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+/* Scroll progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background-color: #b8935a;
+  z-index: 9999;
+  transform-origin: left;
+}
+
+/* Terminal scanline effect */
+.terminal-scanlines {
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.03),
+    rgba(0, 0, 0, 0.03) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+/* Dot grid pattern for About section */
+.dot-grid {
+  background-image: radial-gradient(circle, rgba(184, 147, 90, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Project banner gradients */
+.project-gradient-neti {
+  background: linear-gradient(135deg, #0a1628 0%, #0d2137 50%, #071520 100%);
+}
+
+.project-gradient-energy {
+  background: linear-gradient(135deg, #1a0a00 0%, #2d1500 50%, #0f0800 100%);
+}
+
+.project-gradient-habitos {
+  background: linear-gradient(135deg, #0f0a1e 0%, #1a0f2e 50%, #080612 100%);
+}
+
+.project-gradient-titanic {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1008 100%);
+}
+
+.project-gradient-expensewise {
+  background: linear-gradient(135deg, #080f0a 0%, #0d1a10 100%);
+}
+
+/* Animated grid overlay for project cards */
+@keyframes grid-drift {
+  0% {
+    background-position: 0 0;
   }
+  100% {
+    background-position: 50px 50px;
+  }
+}
+
+.animated-grid {
+  background-image:
+    linear-gradient(rgba(184, 147, 90, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 147, 90, 0.05) 1px, transparent 1px);
+  background-size: 25px 25px;
+  animation: grid-drift 20s linear infinite;
+}
+
+/* Flowing lines animation */
+@keyframes flow-lines {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.flowing-lines::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 50px,
+    rgba(184, 147, 90, 0.1) 50px,
+    rgba(184, 147, 90, 0.1) 51px
+  );
+  animation: flow-lines 15s linear infinite;
+}
+
+/* Pulsing dots animation */
+@keyframes pulse-dots {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.2);
+  }
+}
+
+.pulsing-dots {
+  background-image: radial-gradient(circle, rgba(184, 147, 90, 0.3) 2px, transparent 2px);
+  background-size: 30px 30px;
+  animation: pulse-dots 3s ease-in-out infinite;
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent-warm);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }

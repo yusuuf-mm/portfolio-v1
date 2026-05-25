@@ -1,6 +1,6 @@
-import { ExternalLink, Globe } from 'lucide-react'
+import { SiGithub } from 'react-icons/si'
+import { FaLinkedinIn } from 'react-icons/fa'
 import { cn } from '@/lib/utils'
-import TerminalPrompt from '@/components/ui/TerminalPrompt'
 
 const navLinks = [
   { label: 'About', href: '#about' },
@@ -11,8 +11,8 @@ const navLinks = [
 ]
 
 const socialLinks = [
-  { icon: ExternalLink, href: 'https://github.com/yusuuf-mm', label: 'GitHub' },
-  { icon: Globe, href: 'https://linkedin.com/in/yusuufmm', label: 'LinkedIn' },
+  { icon: SiGithub, href: 'https://github.com/yusuuf-mm', label: 'GitHub' },
+  { icon: FaLinkedinIn, href: 'https://linkedin.com/in/yusuufmm', label: 'LinkedIn' },
 ]
 
 export default function Footer() {
@@ -21,17 +21,17 @@ export default function Footer() {
       {/* Main row */}
       <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-8">
         {/* Left — terminal prompt */}
-        <TerminalPrompt text="yusuf.sys ~ end" showCursor={false} />
+        <span className="font-mono text-sm text-bronze">{'\u276F'} yusuf.sys ~ end</span>
 
         {/* Center — nav links */}
-        <nav className="flex items-center gap-6">
+        <nav className="flex items-center gap-6 flex-wrap justify-center">
           {navLinks.map((link) => (
             <a
               key={link.label}
               href={link.href}
               className={cn(
                 'font-mono text-xs text-[var(--text-muted)]',
-                'hover:text-[var(--accent)] transition-colors duration-200'
+                'hover:text-bronze transition-colors duration-200'
               )}
             >
               {link.label}
@@ -47,7 +47,7 @@ export default function Footer() {
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors duration-200"
+              className="text-[var(--text-muted)] hover:text-bronze transition-colors duration-200"
               aria-label={link.label}
             >
               <link.icon size={16} />
@@ -59,7 +59,7 @@ export default function Footer() {
       {/* Bottom line */}
       <div className="border-t border-[var(--border)]">
         <p className="max-w-6xl mx-auto px-6 py-4 font-mono text-xs text-[var(--text-muted)] text-center">
-          {'\u00A9'} 2026 Yusuf Muhammad Musa. Built with precision.
+          {'\u00A9'} 2026 Yusuf Muhammad Musa {'\u2014'} Built with precision
         </p>
       </div>
     </footer>

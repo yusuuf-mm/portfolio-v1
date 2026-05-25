@@ -11,10 +11,8 @@ export default function ThemeToggle({ className }: { className?: string }) {
     <button
       onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
       className={cn(
-        'p-2 rounded-lg border transition-all duration-200',
-        'border-[var(--border)] bg-[var(--surface)]',
-        'hover:border-[var(--accent)] text-[var(--text-muted)]',
-        'hover:text-[var(--accent)]',
+        'p-1.5 rounded-full transition-colors duration-200',
+        'text-[var(--text-muted)] hover:text-bronze',
         className
       )}
       aria-label="Toggle theme"
