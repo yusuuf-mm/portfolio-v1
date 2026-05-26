@@ -5,6 +5,7 @@ import { motion, useInView } from 'framer-motion'
 import { RiBrainLine, RiLineChartLine, RiStackLine } from 'react-icons/ri'
 import GlassCard from '@/components/ui/GlassCard'
 import Badge from '@/components/ui/Badge'
+import OptimizationGraph from '@/components/ui/OptimizationGraph'
 import { pillars } from '@/content/about'
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -36,7 +37,7 @@ export default function WhatIBuild() {
       <div className="max-w-6xl mx-auto px-6 lg:px-16">
         {/* Header */}
         <motion.div
-          className="flex flex-col gap-4 mb-16"
+          className="flex flex-col gap-4 mb-12"
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -48,10 +49,21 @@ export default function WhatIBuild() {
           </h2>
         </motion.div>
 
+        {/* Optimization Routing Graph */}
+        <motion.div
+          className="mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+        >
+          <OptimizationGraph />
+        </motion.div>
+
         {/* Pillar cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {pillars.map((pillar, i) => {
             const Icon = iconMap[pillar.icon]
+            const isOptimizationPillar = pillar.icon === 'GitBranch'
 
             return (
               <motion.div
@@ -63,19 +75,33 @@ export default function WhatIBuild() {
               >
                 <GlassCard
                   hover
-                  className="p-6 lg:p-8 flex flex-col gap-5 h-full border-l-2 border-l-bronze"
+                  className={`p-6 lg:p-8 flex flex-col gap-5 h-full border-l-2 ${
+                    isOptimizationPillar
+                      ? 'border-l-bronze bg-gradient-to-br from-bronze/5 to-transparent'
+                      : 'border-l-[var(--border)]'
+                  }`}
                 >
                   {/* Icon */}
                   <motion.div
-                    className="w-12 h-12 flex items-center justify-center rounded-lg bg-[var(--surface)] border border-[var(--border)]"
+                    className={`w-12 h-12 flex items-center justify-center rounded-lg border ${
+                      isOptimizationPillar
+                        ? 'bg-bronze/10 border-bronze/30'
+                        : 'bg-[var(--surface)] border-[var(--border)]'
+                    }`}
                     whileHover={{ scale: 1.15 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                   >
-                    <Icon className="w-7 h-7 text-bronze" />
+                    <Icon
+                      className={`w-7 h-7 ${isOptimizationPillar ? 'text-bronze' : 'text-bronze'}`}
+                    />
                   </motion.div>
 
                   {/* Title */}
-                  <h3 className="font-mono text-lg font-semibold text-[var(--text-primary)]">
+                  <h3
+                    className={`font-mono text-lg font-semibold ${
+                      isOptimizationPillar ? 'text-bronze' : 'text-[var(--text-primary)]'
+                    }`}
+                  >
                     {pillar.title}
                   </h3>
 

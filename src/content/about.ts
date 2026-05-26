@@ -1,9 +1,9 @@
 export const narrative = {
   heading: 'The Engineer Behind the Systems',
   paragraphs: [
-    'I started as a software engineer. Shipped code, broke things, fixed them. Learned what it actually takes to build something that holds up.',
-    'Then I went deeper. Machine learning, data science, data engineering. Not because it was trending, but because I wanted to understand how intelligence gets built from the ground up.',
-    "Now I work at the intersection of all of it. I build AI systems that don't just run models. They make decisions, optimize outcomes, and adapt. Operations Research is the core. Everything else is the stack.",
+    'The journey begins with a solid foundation in traditional software engineering. Before we can teach machines to recognize patterns, we must first master structured logic, clean architecture, and building robust foundational systems.',
+    'As capability expands, we transition from writing explicit instructions to orchestrating massive data flows. Designing complex APIs and scalable architectures lays the essential groundwork required to handle the datasets that train modern models.',
+    'Ultimately, these disciplines converge. By merging statistical analysis and feature engineering with scalable deployment pipelines, we transform raw mathematical algorithms into resilient, intelligent, production-ready AI systems.',
   ],
 }
 
