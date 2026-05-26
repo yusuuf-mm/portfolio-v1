@@ -84,6 +84,24 @@ const dagConfigs: Record<string, { nodes: DAGNode[]; edges: DAGEdge[] }> = {
       { from: 'milp', to: 'scenario' },
     ],
   },
+  'titanic-optimizer': {
+    nodes: [
+      { id: 'passengers', label: 'Passengers', type: 'input', x: 8, y: 40 },
+      { id: 'features', label: 'Features', type: 'process', x: 28, y: 40 },
+      { id: 'xgboost', label: 'XGBoost', type: 'ml', x: 48, y: 25 },
+      { id: 'ethics', label: 'Ethics', type: 'process', x: 48, y: 55 },
+      { id: 'mip', label: 'MIP Solver', type: 'optimizer', x: 70, y: 40 },
+      { id: 'allocation', label: 'Allocation', type: 'output', x: 92, y: 40 },
+    ],
+    edges: [
+      { from: 'passengers', to: 'features' },
+      { from: 'features', to: 'xgboost' },
+      { from: 'features', to: 'ethics' },
+      { from: 'xgboost', to: 'mip' },
+      { from: 'ethics', to: 'mip' },
+      { from: 'mip', to: 'allocation' },
+    ],
+  },
 }
 
 const nodeStyles: Record<NodeType, string> = {
