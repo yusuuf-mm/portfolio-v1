@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect, useCallback } from 'react'
 import { motion, useInView, AnimatePresence } from 'framer-motion'
 import { Download, Mail, MapPin } from 'lucide-react'
 import { SiGithub } from 'react-icons/si'
@@ -88,14 +88,89 @@ function DriftingParticles() {
   )
 }
 
+// Terminal log steps for the agentic workflow animation
+const WORKFLOW_STEPS = [
+  { phase: 'PARSING', text: 'input.message → extracting intent...' },
+  { phase: 'ROUTING', text: 'forwarding to yusuf.sys inbox...' },
+  { phase: 'DELIVERED', text: 'message.sent ✓' },
+]
+
+// Animated workflow log component
+function WorkflowLog({ onComplete }: { onComplete: () => void }) {
+  const [currentStep, setCurrentStep] = useState(0)
+  const [showCursor, setShowCursor] = useState(true)
+
+  useEffect(() => {
+    if (currentStep < WORKFLOW_STEPS.length) {
+      const timer = setTimeout(() => {
+        setCurrentStep((prev) => prev + 1)
+      }, 600) // 600ms per step = ~2s total
+      return () => clearTimeout(timer)
+    } else {
+      // All steps complete
+      const completeTimer = setTimeout(onComplete, 400)
+      return () => clearTimeout(completeTimer)
+    }
+  }, [currentStep, onComplete])
+
+  // Blinking cursor effect
+  useEffect(() => {
+    const cursorInterval = setInterval(() => {
+      setShowCursor((prev) => !prev)
+    }, 400)
+    return () => clearInterval(cursorInterval)
+  }, [])
+
+  return (
+    <div className="font-mono text-xs space-y-1.5 py-2">
+      {WORKFLOW_STEPS.slice(0, currentStep).map((step, idx) => (
+        <motion.div
+          key={step.phase}
+          initial={{ opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex items-center gap-2"
+        >
+          <span
+            className={cn(
+              'px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wider',
+              step.phase === 'DELIVERED'
+                ? 'bg-emerald-500/20 text-emerald-400'
+                : 'bg-bronze/20 text-bronze'
+            )}
+          >
+            {step.phase}
+          </span>
+          <span className="text-[var(--text-muted)]">{step.text}</span>
+        </motion.div>
+      ))}
+      {currentStep < WORKFLOW_STEPS.length && (
+        <div className="flex items-center gap-2">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium tracking-wider bg-bronze/20 text-bronze">
+            {WORKFLOW_STEPS[currentStep].phase}
+          </span>
+          <span className="text-[var(--text-muted)]">{showCursor ? '▌' : ' '}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [showWorkflow, setShowWorkflow] = useState(false)
+
+  const handleWorkflowComplete = useCallback(() => {
+    setShowWorkflow(false)
+    setStatus('sent')
+  }, [])
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setStatus('sending')
+    setShowWorkflow(true)
 
     const form = e.currentTarget
     const formData = new FormData(form)
@@ -112,13 +187,15 @@ export default function Contact() {
         body: JSON.stringify(data),
       })
 
-      if (res.ok) {
-        setStatus('sent')
-        form.reset()
-      } else {
+      if (!res.ok) {
+        setShowWorkflow(false)
         setStatus('error')
+      } else {
+        form.reset()
+        // Workflow animation handles the 'sent' state transition
       }
     } catch {
+      setShowWorkflow(false)
       setStatus('error')
     }
   }
@@ -177,56 +254,75 @@ export default function Contact() {
               placeholder="Tell me about your project or role..."
             />
 
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={status === 'sending' || status === 'sent'}
-              className={cn(
-                'self-start px-8 py-3 font-mono text-sm rounded',
-                'bg-[var(--accent)] text-white',
-                'transition-all hover:opacity-80 disabled:opacity-50'
-              )}
-            >
-              {status === 'sending' ? (
-                <span className="flex items-center gap-2">
-                  <motion.span
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 0.8, ease: 'linear' }}
+            {/* Submit area with workflow animation */}
+            <div className="min-h-[100px]">
+              <AnimatePresence mode="wait">
+                {showWorkflow ? (
+                  <motion.div
+                    key="workflow"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4"
                   >
-                    {'\u203A'}
-                  </motion.span>
-                  Sending...
-                </span>
-              ) : status === 'sent' ? (
-                'Sent!'
-              ) : (
-                'Send Message \u203A'
-              )}
-            </button>
-
-            {/* Status messages */}
-            <AnimatePresence>
-              {status === 'sent' && (
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="font-mono text-xs text-bronze"
-                >
-                  {'\u276F'} message.sent — we&apos;ll be in touch
-                </motion.p>
-              )}
-              {status === 'error' && (
-                <motion.p
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="font-mono text-xs text-red-500"
-                >
-                  {'\u276F'} error.network — please try again
-                </motion.p>
-              )}
-            </AnimatePresence>
+                    <WorkflowLog onComplete={handleWorkflowComplete} />
+                  </motion.div>
+                ) : status === 'sent' ? (
+                  <motion.div
+                    key="sent"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col gap-3"
+                  >
+                    <p className="font-mono text-sm text-bronze">
+                      {'\u203A'} message.sent — we&apos;ll be in touch
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setStatus('idle')}
+                      className="self-start font-mono text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                    >
+                      Send another message
+                    </button>
+                  </motion.div>
+                ) : status === 'error' ? (
+                  <motion.div
+                    key="error"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex flex-col gap-3"
+                  >
+                    <p className="font-mono text-xs text-red-500">
+                      {'\u203A'} error.network — please try again
+                    </p>
+                    <button
+                      type="submit"
+                      className={cn(
+                        'self-start px-8 py-3 font-mono text-sm rounded',
+                        'bg-[var(--accent)] text-white',
+                        'transition-all hover:opacity-80'
+                      )}
+                    >
+                      Retry {'\u203A'}
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    key="submit"
+                    type="submit"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={cn(
+                      'self-start px-8 py-3 font-mono text-sm rounded',
+                      'bg-[var(--accent)] text-white',
+                      'transition-all hover:opacity-80'
+                    )}
+                  >
+                    Send Message {'\u203A'}
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.form>
 
           {/* Right — Contact info */}
