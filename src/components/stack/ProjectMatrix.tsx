@@ -39,17 +39,17 @@ function IntensityCell({
         isHighlighted && intensity === 'none' && 'border-[var(--border)]'
       )}
       style={{
-        backgroundColor: isHighlighted && intensity !== 'none'
-          ? INTENSITY_COLORS[intensity].replace(')', ', 1)').replace('rgba', 'rgba')
-          : INTENSITY_COLORS[intensity],
+        backgroundColor:
+          isHighlighted && intensity !== 'none'
+            ? INTENSITY_COLORS[intensity].replace(')', ', 1)').replace('rgba', 'rgba')
+            : INTENSITY_COLORS[intensity],
       }}
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ 
-        opacity: 1, 
+      animate={{
+        opacity: 1,
         scale: 1,
-        boxShadow: isHighlighted && intensity !== 'none' 
-          ? '0 0 8px rgba(184, 147, 90, 0.4)' 
-          : 'none'
+        boxShadow:
+          isHighlighted && intensity !== 'none' ? '0 0 8px rgba(184, 147, 90, 0.4)' : 'none',
       }}
       transition={{ duration: 0.2 }}
     />
@@ -128,9 +128,12 @@ export default function ProjectMatrix({ categories, isInView }: ProjectMatrixPro
       {/* Matrix */}
       <div className="overflow-x-auto">
         <div className="min-w-[600px]">
-          {/* Column headers (Projects) */}
-          <div className="flex items-end mb-2 pl-24">
-            <div className="flex-1 grid gap-1" style={{ gridTemplateColumns: `repeat(${PROJECT_ORDER.length}, 1fr)` }}>
+          {/* Column headers (Projects) - sticky */}
+          <div className="flex items-end mb-2 pl-24 sticky top-0 bg-[var(--surface)] z-10 pb-2">
+            <div
+              className="flex-1 grid gap-1"
+              style={{ gridTemplateColumns: `repeat(${PROJECT_ORDER.length}, 1fr)` }}
+            >
               {PROJECT_ORDER.map((projectId) => (
                 <div key={projectId} className="text-center">
                   <span className="font-mono text-[9px] text-[var(--text-muted)] uppercase tracking-wider">
@@ -141,61 +144,81 @@ export default function ProjectMatrix({ categories, isInView }: ProjectMatrixPro
             </div>
           </div>
 
-          {/* Rows (Tools) */}
-          <div className="space-y-1">
-            {toolsWithUsage.map((tool) => {
-              const isToolHighlighted = activeTool?.name === tool.name
+          {/* Scrollable rows container */}
+          <div
+            className="max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-bronze/20 hover:scrollbar-thumb-bronze/40"
+            style={{
+              scrollbarWidth: 'thin',
+              scrollbarColor: 'rgba(184, 147, 90, 0.2) transparent',
+            }}
+          >
+            {/* Rows (Tools) */}
+            <div className="space-y-1 pr-1">
+              {toolsWithUsage.map((tool) => {
+                const isToolHighlighted = activeTool?.name === tool.name
 
-              return (
-                <motion.div
-                  key={tool.name}
-                  className={cn(
-                    'flex items-center gap-2 py-0.5 px-1 rounded transition-colors duration-200',
-                    isToolHighlighted && 'bg-bronze/10'
-                  )}
-                  animate={{
-                    backgroundColor: isToolHighlighted ? 'rgba(184, 147, 90, 0.1)' : 'transparent',
-                  }}
-                >
-                  {/* Tool name */}
-                  <div className="w-24 flex-shrink-0">
-                    <span
-                      className={cn(
-                        'font-mono text-[10px] truncate block transition-colors duration-200',
-                        isToolHighlighted ? 'text-bronze font-medium' : 'text-[var(--text-muted)]'
-                      )}
+                return (
+                  <motion.div
+                    key={tool.name}
+                    className={cn(
+                      'flex items-center gap-2 py-0.5 px-1 rounded transition-colors duration-200',
+                      isToolHighlighted && 'bg-bronze/10'
+                    )}
+                    animate={{
+                      backgroundColor: isToolHighlighted
+                        ? 'rgba(184, 147, 90, 0.1)'
+                        : 'transparent',
+                    }}
+                  >
+                    {/* Tool name */}
+                    <div className="w-24 flex-shrink-0">
+                      <span
+                        className={cn(
+                          'font-mono text-[10px] truncate block transition-colors duration-200',
+                          isToolHighlighted ? 'text-bronze font-medium' : 'text-[var(--text-muted)]'
+                        )}
+                      >
+                        {tool.name}
+                      </span>
+                    </div>
+
+                    {/* Intensity cells */}
+                    <div
+                      className="flex-1 grid gap-1"
+                      style={{ gridTemplateColumns: `repeat(${PROJECT_ORDER.length}, 1fr)` }}
                     >
-                      {tool.name}
-                    </span>
-                  </div>
-
-                  {/* Intensity cells */}
-                  <div className="flex-1 grid gap-1" style={{ gridTemplateColumns: `repeat(${PROJECT_ORDER.length}, 1fr)` }}>
-                    {PROJECT_ORDER.map((projectId) => {
-                      const intensity = getToolIntensityForProject(tool, projectId)
-                      return (
-                        <IntensityCell
-                          key={projectId}
-                          intensity={intensity}
-                          isHighlighted={isToolHighlighted}
-                          toolName={tool.name}
-                          projectId={projectId}
-                        />
-                      )
-                    })}
-                  </div>
-                </motion.div>
-              )
-            })}
+                      {PROJECT_ORDER.map((projectId) => {
+                        const intensity = getToolIntensityForProject(tool, projectId)
+                        return (
+                          <IntensityCell
+                            key={projectId}
+                            intensity={intensity}
+                            isHighlighted={isToolHighlighted}
+                            toolName={tool.name}
+                            projectId={projectId}
+                          />
+                        )
+                      })}
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile hint */}
-      <div className="mt-3 pt-2 border-t border-[var(--border)] md:hidden">
-        <span className="text-[9px] text-[var(--text-muted)]">
-          Scroll horizontally to see all projects
-        </span>
+      {/* Scroll hint with fade gradient */}
+      <div className="relative mt-1">
+        <div className="absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-[var(--surface)] to-transparent pointer-events-none" />
+        <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
+          <span className="text-[9px] text-[var(--text-muted)] font-mono">
+            Scroll to explore {toolsWithUsage.length} tools
+          </span>
+          <span className="text-[9px] text-[var(--text-muted)] font-mono md:hidden">
+            Swipe horizontally for all projects
+          </span>
+        </div>
       </div>
     </motion.div>
   )
