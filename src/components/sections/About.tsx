@@ -2,14 +2,13 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { motion, useInView, useScroll, useTransform } from 'framer-motion'
-import { cn } from '@/lib/utils'
 import { narrative } from '@/content/about'
 import dynamic from 'next/dynamic'
 
 const NeuralNetwork = dynamic(() => import('@/components/ui/NeuralNetwork'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[400px] rounded-xl border border-[var(--border)] bg-[var(--surface)] flex items-center justify-center">
+    <div className="w-full h-[500px] rounded-xl border border-[var(--border)] bg-void flex items-center justify-center">
       <span className="font-mono text-sm text-[var(--text-muted)]">Loading network...</span>
     </div>
   ),
@@ -19,8 +18,8 @@ const staggerContainer = {
   hidden: {},
   visible: {
     transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
+      staggerChildren: 0.15,
+      delayChildren: 0.1,
     },
   },
 }
@@ -37,22 +36,11 @@ const fadeInUp = {
   },
 }
 
-const terminalLines = [
-  { prompt: '>', text: 'cat journey.log', delay: 0 },
-  { prompt: '', text: '───────────────────────────────────────', delay: 0.3 },
-  { prompt: '[2019]', text: 'Initialized: Software Engineer', delay: 0.5 },
-  { prompt: '[2021]', text: 'Module loaded: Data Engineering', delay: 0.7 },
-  { prompt: '[2023]', text: 'Upgrade: ML Systems Integration', delay: 0.9 },
-  { prompt: '[NOW]', text: 'Status: AI Systems Engineer', delay: 1.1, highlight: true },
-  { prompt: '', text: '───────────────────────────────────────', delay: 1.3 },
-]
-
 export default function About() {
   const sectionRef = useRef<HTMLElement>(null)
   const networkContainerRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
   const [networkComplete, setNetworkComplete] = useState(false)
-  const [showTerminal, setShowTerminal] = useState(false)
 
   const { scrollYProgress } = useScroll({
     target: networkContainerRef,
@@ -69,13 +57,6 @@ export default function About() {
     return unsubscribe
   }, [activationProgress])
 
-  useEffect(() => {
-    if (networkComplete) {
-      const timer = setTimeout(() => setShowTerminal(true), 300)
-      return () => clearTimeout(timer)
-    }
-  }, [networkComplete])
-
   return (
     <section
       id="about"
@@ -85,124 +66,67 @@ export default function About() {
       {/* Dot grid background */}
       <div className="absolute inset-0 dot-grid opacity-50" />
 
-      <div className="max-w-6xl mx-auto px-6 lg:px-16 relative">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-12"
+          className="mb-8"
         >
           <span className="font-mono text-sm text-bronze">
             {'\u276F'} neural_network.forward_pass()
           </span>
-          <h2 className="font-serif text-3xl lg:text-5xl text-[var(--text-primary)] tracking-tight leading-tight mt-3">
-            Knowledge Propagation
-          </h2>
-          <p className="font-sans text-[var(--text-muted)] mt-4 max-w-2xl">
-            Watch how software engineering foundations compound into AI systems expertise. Scroll to
-            activate the forward pass.
-          </p>
         </motion.div>
 
         {/* Neural Network Visualization */}
         <motion.div
           ref={networkContainerRef}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0.98 }}
+          animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.98 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-          className="mb-16"
+          className="mb-0"
         >
           <NeuralNetwork
             activationProgress={progress}
             onComplete={() => setNetworkComplete(true)}
           />
-
-          {/* Progress indicator */}
-          <div className="mt-4 flex items-center gap-4">
-            <div className="flex-1 h-1 bg-[var(--border)] rounded-full overflow-hidden">
-              <motion.div
-                className="h-full bg-bronze rounded-full"
-                style={{ width: progress * 100 + '%' }}
-              />
-            </div>
-            <span className="font-mono text-xs text-[var(--text-muted)]">
-              {Math.round(progress * 100)}% activated
-            </span>
-          </div>
         </motion.div>
 
-        {/* Terminal Output + Narrative */}
+        {/* Three Column Narrative - Below Network */}
         <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={showTerminal ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-          className="grid lg:grid-cols-2 gap-8"
+          variants={staggerContainer}
+          initial="hidden"
+          animate={networkComplete || progress > 0.5 ? 'visible' : 'hidden'}
+          className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12 mt-12 pt-8 border-t border-[var(--border)]"
         >
-          {/* Terminal Journey Log */}
-          <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] backdrop-blur-md overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-[var(--border)] bg-[var(--background)]/50">
-              <div className="flex gap-2">
-                <span className="w-3 h-3 rounded-full bg-red-500/80" />
-                <span className="w-3 h-3 rounded-full bg-yellow-500/80" />
-                <span className="w-3 h-3 rounded-full bg-green-500/80" />
-              </div>
-              <span className="font-mono text-xs text-[var(--text-muted)] ml-2">journey.log</span>
-            </div>
-
-            <div className="p-4 font-mono text-sm space-y-1">
-              {terminalLines.map((line, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={showTerminal ? { opacity: 1, x: 0 } : { opacity: 0, x: -10 }}
-                  transition={{
-                    duration: 0.4,
-                    ease: [0.22, 1, 0.36, 1],
-                    delay: line.delay,
-                  }}
-                  className={cn('flex gap-2', line.highlight && 'text-bronze')}
-                >
-                  {line.prompt && (
-                    <span
-                      className={cn(line.highlight ? 'text-bronze' : 'text-[var(--text-muted)]')}
-                    >
-                      {line.prompt}
-                    </span>
-                  )}
-                  <span
-                    className={cn(
-                      line.highlight ? 'text-bronze font-semibold' : 'text-[var(--text-primary)]'
-                    )}
-                  >
-                    {line.text}
-                  </span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Narrative Text */}
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate={showTerminal ? 'visible' : 'hidden'}
-            className="flex flex-col gap-5"
-          >
-            {narrative.paragraphs.map((paragraph, i) => (
-              <motion.p
-                key={i}
-                variants={fadeInUp}
-                className="font-sans text-base lg:text-lg text-[var(--text-muted)] leading-relaxed"
-              >
+          {narrative.paragraphs.map((paragraph, i) => (
+            <motion.div key={i} variants={fadeInUp} className="relative">
+              {/* Decorative line above paragraph */}
+              <div className="w-8 h-px bg-bronze mb-4" />
+              <p className="font-sans text-sm lg:text-base text-[var(--text-muted)] leading-relaxed">
                 {paragraph}
-              </motion.p>
-            ))}
-
-            <motion.div variants={fadeInUp} className="mt-4 pt-4 border-t border-[var(--border)]">
-              <span className="font-mono text-sm text-bronze">— Yusuf Muhammad Musa</span>
+              </p>
             </motion.div>
-          </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Progress indicator */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-12 flex items-center gap-4"
+        >
+          <div className="flex-1 h-px bg-[var(--border)] rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-bronze rounded-full"
+              style={{ width: progress * 100 + '%' }}
+            />
+          </div>
+          <span className="font-mono text-xs text-[var(--text-muted)]">
+            {Math.round(progress * 100)}% activated
+          </span>
         </motion.div>
       </div>
     </section>
