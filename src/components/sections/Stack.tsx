@@ -2,57 +2,14 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { cn } from '@/lib/utils'
-import GlassCard from '@/components/ui/GlassCard'
 import { stack } from '@/content/stack'
+import { StackInteractionProvider } from '@/components/stack/useStackInteraction'
+import CategoryTreemap from '@/components/stack/CategoryTreemap'
+import ProjectMatrix from '@/components/stack/ProjectMatrix'
+import ToolTooltip from '@/components/stack/ToolTooltip'
+import ConnectionLines from '@/components/stack/ConnectionLines'
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.08,
-    },
-  },
-}
-
-const itemVariants = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.4,
-      ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
-    },
-  },
-}
-
-function ToolCard({ name }: { name: string }) {
-  return (
-    <motion.div
-      variants={itemVariants}
-      whileHover={{ scale: 1.1 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-      className="group"
-    >
-      <div
-        className={cn(
-          'w-20 h-20 flex flex-col items-center justify-center gap-2',
-          'bg-[var(--surface)] backdrop-blur-sm',
-          'border border-[var(--border)] rounded-lg',
-          'transition-all duration-200',
-          'group-hover:border-bronze/40 group-hover:bg-bronze/5'
-        )}
-      >
-        <span className="font-mono text-[10px] text-[var(--text-muted)] group-hover:text-bronze transition-colors px-1 text-center leading-tight">
-          {name}
-        </span>
-      </div>
-    </motion.div>
-  )
-}
-
-export default function Stack() {
+function StackContent() {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
 
@@ -61,7 +18,7 @@ export default function Stack() {
       <div className="max-w-6xl mx-auto px-6 lg:px-16">
         {/* Header */}
         <motion.div
-          className="flex flex-col gap-4 mb-16"
+          className="flex flex-col gap-4 mb-12"
           initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -71,41 +28,47 @@ export default function Stack() {
           <h2 className="font-serif text-3xl lg:text-5xl text-[var(--text-primary)] tracking-tight leading-tight">
             Tools I Build With
           </h2>
+
+          <p className="font-mono text-xs text-[var(--text-muted)] max-w-2xl leading-relaxed">
+            Hover any tool to see which projects it powers and at what depth.
+            Click to lock the view for exploration. The matrix below shows the full integration landscape.
+          </p>
         </motion.div>
 
-        {/* Stack groups */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stack.map((group, groupIndex) => (
-            <motion.div
-              key={group.name}
-              initial={{ opacity: 0, y: 24 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-              transition={{
-                duration: 0.5,
-                ease: [0.22, 1, 0.36, 1],
-                delay: 0.15 + groupIndex * 0.1,
-              }}
-            >
-              <GlassCard hover className="p-5 lg:p-6 h-full">
-                <h3 className="font-mono text-sm font-semibold text-bronze tracking-wide uppercase mb-5">
-                  {group.name}
-                </h3>
-
-                <motion.div
-                  className="flex flex-wrap gap-3"
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate={isInView ? 'visible' : 'hidden'}
-                >
-                  {group.tools.map((tool) => (
-                    <ToolCard key={tool} name={tool} />
-                  ))}
-                </motion.div>
-              </GlassCard>
-            </motion.div>
-          ))}
+        {/* Category Treemap */}
+        <div className="mb-10">
+          <CategoryTreemap categories={stack} isInView={isInView} />
         </div>
+
+        {/* Project Integration Matrix */}
+        <div className="hidden md:block">
+          <ProjectMatrix categories={stack} isInView={isInView} />
+        </div>
+
+        {/* Mobile fallback message */}
+        <motion.div
+          className="md:hidden p-4 rounded-lg bg-[var(--surface)] border border-[var(--border)]"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <p className="font-mono text-xs text-[var(--text-muted)] text-center">
+            View on desktop to see the full project integration matrix and connection lines.
+          </p>
+        </motion.div>
+
+        {/* Interactive overlays */}
+        <ToolTooltip />
+        <ConnectionLines />
       </div>
     </section>
+  )
+}
+
+export default function Stack() {
+  return (
+    <StackInteractionProvider>
+      <StackContent />
+    </StackInteractionProvider>
   )
 }
