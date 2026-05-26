@@ -127,7 +127,7 @@ export const projects: Project[] = [
     ],
     github: 'https://github.com/yusuuf-mm/Titanic-Survival-Prediction-Optimization-Engine',
     demo: null,
-    featured: false,
+    featured: true,
   },
   {
     id: 'expensewise',

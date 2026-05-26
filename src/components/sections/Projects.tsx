@@ -33,7 +33,9 @@ function StatusBadge({ status }: { status: string }) {
 
 function FeaturedCard({ project, index }: { project: (typeof projects)[0]; index: number }) {
   const [isHovered, setIsHovered] = useState(false)
-  const hasDAG = ['energy-pipeline', 'habitos', 'neti-hyoptima'].includes(project.id)
+  const hasDAG = ['energy-pipeline', 'habitos', 'neti-hyoptima', 'titanic-optimizer'].includes(
+    project.id
+  )
 
   return (
     <motion.div
