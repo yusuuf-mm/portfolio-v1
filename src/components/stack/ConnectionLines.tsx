@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useRef, startTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PROJECT_ORDER, getToolIntensityForProject } from '@/content/stack'
@@ -12,14 +12,8 @@ interface Connection {
   intensity: 'low' | 'medium' | 'high'
 }
 
-function calculateBezierPath(
-  startX: number,
-  startY: number,
-  endX: number,
-  endY: number
-): string {
+function calculateBezierPath(startX: number, startY: number, endX: number, endY: number): string {
   // Calculate control points for a smooth curve
-  const midY = (startY + endY) / 2
   const controlOffset = Math.abs(endX - startX) * 0.3
 
   // Create a smooth S-curve
@@ -58,17 +52,22 @@ export default function ConnectionLines() {
   const [connections, setConnections] = useState<Connection[]>([])
   const [mounted, setMounted] = useState(false)
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 })
-  const animationFrameRef = useRef<number>()
+  const animationFrameRef = useRef<number>(0)
 
   useEffect(() => {
-    setMounted(true)
+    startTransition(() => {
+      setMounted(true)
+      setDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    })
     const updateDimensions = () => {
       setDimensions({
         width: window.innerWidth,
         height: window.innerHeight,
       })
     }
-    updateDimensions()
     window.addEventListener('resize', updateDimensions)
     return () => window.removeEventListener('resize', updateDimensions)
   }, [])
@@ -76,7 +75,7 @@ export default function ConnectionLines() {
   // Calculate connections when active tool changes
   useEffect(() => {
     if (!activeTool) {
-      setConnections([])
+      startTransition(() => setConnections([]))
       return
     }
 
@@ -160,7 +159,13 @@ export default function ConnectionLines() {
 
       <AnimatePresence>
         {connections.map((connection) => (
-          <motion.g key={connection.id}>
+          <motion.g
+            key={connection.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
             {/* Glow layer */}
             <motion.path
               d={connection.path}

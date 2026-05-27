@@ -167,7 +167,7 @@ export default function ProjectMatrix({ categories, isInView }: ProjectMatrixPro
                     animate={{
                       backgroundColor: isToolHighlighted
                         ? 'rgba(184, 147, 90, 0.1)'
-                        : 'transparent',
+                        : 'rgba(0, 0, 0, 0)',
                     }}
                   >
                     {/* Tool name */}

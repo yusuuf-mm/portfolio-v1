@@ -1,11 +1,17 @@
 'use client'
 
+import { useEffect, useState, startTransition } from 'react'
 import { useTheme } from 'next-themes'
 import { Sun, Moon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    startTransition(() => setMounted(true))
+  }, [])
 
   return (
     <button
@@ -16,10 +22,9 @@ export default function ThemeToggle({ className }: { className?: string }) {
         className
       )}
       aria-label="Toggle theme"
-      suppressHydrationWarning
     >
       <span suppressHydrationWarning>
-        {resolvedTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+        {mounted && resolvedTheme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
       </span>
     </button>
   )
