@@ -1,16 +1,10 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import {
-  type ToolCategory,
-  type UsageIntensity,
-  PROJECT_ORDER,
-  PROJECT_LABELS,
-  INTENSITY_COLORS,
-  getToolIntensityForProject,
-} from '@/content/stack'
+import type { ToolCategory, UsageIntensity } from '@/content/stack'
+import { PROJECT_ORDER, PROJECT_LABELS, getToolIntensityForProject } from '@/content/stack'
 import { useStackInteraction } from './useStackInteraction'
 
 interface ProjectMatrixProps {
@@ -18,76 +12,38 @@ interface ProjectMatrixProps {
   isInView: boolean
 }
 
-function IntensityCell({
-  intensity,
-  isHighlighted,
-  toolName,
-  projectId,
-}: {
-  intensity: UsageIntensity
-  isHighlighted: boolean
-  toolName: string
-  projectId: string
-}) {
-  return (
-    <motion.div
-      data-matrix-cell={`${toolName}-${projectId}`}
-      className={cn(
-        'w-full h-6 rounded-sm transition-all duration-200',
-        'border border-transparent',
-        isHighlighted && intensity !== 'none' && 'ring-1 ring-bronze/60 border-bronze/40',
-        isHighlighted && intensity === 'none' && 'border-[var(--border)]'
-      )}
-      style={{
-        backgroundColor:
-          isHighlighted && intensity !== 'none'
-            ? INTENSITY_COLORS[intensity].replace(')', ', 1)').replace('rgba', 'rgba')
-            : INTENSITY_COLORS[intensity],
-      }}
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{
-        opacity: 1,
-        scale: 1,
-        boxShadow:
-          isHighlighted && intensity !== 'none' ? '0 0 8px rgba(184, 147, 90, 0.4)' : 'none',
-      }}
-      transition={{ duration: 0.2 }}
-    />
-  )
+const intensityCellClass: Record<UsageIntensity, string> = {
+  high: 'bg-[rgba(184,147,90,0.75)] text-[#0c0c0e] font-medium',
+  medium: 'bg-[rgba(184,147,90,0.35)] text-bronze',
+  low: 'bg-[rgba(184,147,90,0.12)] text-bronze/60',
+  none: 'text-[#2d2d2d]',
 }
 
-function IntensityLegend() {
-  const levels: { label: string; intensity: UsageIntensity }[] = [
-    { label: 'None', intensity: 'none' },
-    { label: 'Low', intensity: 'low' },
-    { label: 'Med', intensity: 'medium' },
-    { label: 'High', intensity: 'high' },
-  ]
+const intensityLabel: Record<UsageIntensity, string> = {
+  high: 'HIGH',
+  medium: 'MED',
+  low: 'LOW',
+  none: '\u2014',
+}
 
-  return (
-    <div className="flex items-center gap-4">
-      <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--text-muted)]">
-        Usage Intensity:
-      </span>
-      <div className="flex items-center gap-2">
-        {levels.map(({ label, intensity }) => (
-          <div key={intensity} className="flex items-center gap-1">
-            <div
-              className="w-3 h-3 rounded-sm border border-[var(--border)]"
-              style={{ backgroundColor: INTENSITY_COLORS[intensity] }}
-            />
-            <span className="font-mono text-[9px] text-[var(--text-muted)]">{label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+const legendLevels: { label: string; intensity: UsageIntensity }[] = [
+  { label: 'High', intensity: 'high' },
+  { label: 'Med', intensity: 'medium' },
+  { label: 'Low', intensity: 'low' },
+  { label: 'None', intensity: 'none' },
+]
+
+const legendDotColors: Record<UsageIntensity, string> = {
+  high: 'rgba(184, 147, 90, 0.75)',
+  medium: 'rgba(184, 147, 90, 0.35)',
+  low: 'rgba(184, 147, 90, 0.12)',
+  none: 'rgba(255, 255, 255, 0.05)',
 }
 
 export default function ProjectMatrix({ categories, isInView }: ProjectMatrixProps) {
   const { activeTool } = useStackInteraction()
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-  // Flatten all tools with their category info
   const allTools = useMemo(() => {
     return categories.flatMap((category) =>
       category.tools.map((tool) => ({
@@ -98,10 +54,17 @@ export default function ProjectMatrix({ categories, isInView }: ProjectMatrixPro
     )
   }, [categories])
 
-  // Filter to only show tools that have at least one project usage
   const toolsWithUsage = useMemo(() => {
     return allTools.filter((tool) => tool.usage.length > 0)
   }, [allTools])
+
+  useEffect(() => {
+    if (!activeTool || !scrollContainerRef.current) return
+    const row = scrollContainerRef.current.querySelector(`[data-matrix-row="${activeTool.name}"]`)
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }
+  }, [activeTool])
 
   return (
     <motion.div
@@ -121,22 +84,38 @@ export default function ProjectMatrix({ categories, isInView }: ProjectMatrixPro
           <h3 className="font-mono text-xs font-semibold tracking-wide uppercase text-[var(--text-primary)]">
             Project Integration Matrix
           </h3>
+          <span className="font-mono text-[10px] text-[var(--text-muted)] ml-1">
+            : <span className="text-bronze">usage intensity</span>
+          </span>
         </div>
-        <IntensityLegend />
+
+        {/* Legend */}
+        <div className="hidden md:flex items-center gap-3">
+          {legendLevels.map(({ label, intensity }) => (
+            <div key={intensity} className="flex items-center gap-1">
+              <div
+                className="w-2 h-2 rounded-sm"
+                style={{ backgroundColor: legendDotColors[intensity] }}
+              />
+              <span className="font-mono text-[9px] text-[var(--text-muted)]">{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Matrix */}
+      {/* Table */}
       <div className="overflow-x-auto">
-        <div className="min-w-[600px]">
-          {/* Column headers (Projects) - sticky */}
-          <div className="flex items-end mb-2 pl-24 sticky top-0 bg-[var(--surface)] z-10 pb-2">
+        <div className="min-w-[500px]">
+          {/* Column headers */}
+          <div className="flex items-center mb-2 sticky top-0 bg-[var(--surface)] z-10 pb-2">
+            <div className="w-[90px] shrink-0" />
             <div
               className="flex-1 grid gap-1"
               style={{ gridTemplateColumns: `repeat(${PROJECT_ORDER.length}, 1fr)` }}
             >
               {PROJECT_ORDER.map((projectId) => (
                 <div key={projectId} className="text-center">
-                  <span className="font-mono text-[9px] text-[var(--text-muted)] uppercase tracking-wider">
+                  <span className="font-mono text-[9px] text-[var(--text-muted)] uppercase tracking-wider whitespace-nowrap">
                     {PROJECT_LABELS[projectId]}
                   </span>
                 </div>
@@ -144,38 +123,45 @@ export default function ProjectMatrix({ categories, isInView }: ProjectMatrixPro
             </div>
           </div>
 
-          {/* Scrollable rows container */}
+          {/* Rows — 3-4 visible, rest scrollable */}
           <div
-            className="max-h-[280px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-bronze/20 hover:scrollbar-thumb-bronze/40"
+            ref={scrollContainerRef}
+            className="max-h-[200px] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-bronze/20 hover:scrollbar-thumb-bronze/40"
             style={{
               scrollbarWidth: 'thin',
               scrollbarColor: 'rgba(184, 147, 90, 0.2) transparent',
             }}
           >
-            {/* Rows (Tools) */}
-            <div className="space-y-1 pr-1">
+            <div className="space-y-[2px] pr-1">
               {toolsWithUsage.map((tool) => {
-                const isToolHighlighted = activeTool?.name === tool.name
+                const isHighlighted = activeTool?.name === tool.name
+                const hasActive = activeTool !== null
+                const isDimmed = hasActive && !isHighlighted
 
                 return (
                   <motion.div
                     key={tool.name}
+                    data-matrix-row={tool.name}
                     className={cn(
-                      'flex items-center gap-2 py-0.5 px-1 rounded transition-colors duration-200',
-                      isToolHighlighted && 'bg-bronze/10'
+                      'flex items-center gap-2 py-[3px] px-1 rounded transition-colors duration-200',
+                      isHighlighted && 'bg-bronze/10 outline outline-1 outline-bronze/20'
                     )}
                     animate={{
-                      backgroundColor: isToolHighlighted
+                      opacity: isDimmed ? 0.2 : 1,
+                      backgroundColor: isHighlighted
                         ? 'rgba(184, 147, 90, 0.1)'
                         : 'rgba(0, 0, 0, 0)',
                     }}
+                    transition={{ duration: 0.2 }}
                   >
                     {/* Tool name */}
-                    <div className="w-24 flex-shrink-0">
+                    <div className="w-[90px] shrink-0">
                       <span
                         className={cn(
                           'font-mono text-[10px] truncate block transition-colors duration-200',
-                          isToolHighlighted ? 'text-bronze font-medium' : 'text-[var(--text-muted)]'
+                          isHighlighted
+                            ? 'text-[var(--text-primary)] font-medium'
+                            : 'text-[var(--text-muted)]'
                         )}
                       >
                         {tool.name}
@@ -190,13 +176,19 @@ export default function ProjectMatrix({ categories, isInView }: ProjectMatrixPro
                       {PROJECT_ORDER.map((projectId) => {
                         const intensity = getToolIntensityForProject(tool, projectId)
                         return (
-                          <IntensityCell
-                            key={projectId}
-                            intensity={intensity}
-                            isHighlighted={isToolHighlighted}
-                            toolName={tool.name}
-                            projectId={projectId}
-                          />
+                          <div key={projectId} className="text-center">
+                            <span
+                              className={cn(
+                                'inline-block font-mono text-[9px] px-1.5 py-[1px] rounded-sm transition-all duration-200',
+                                intensityCellClass[intensity],
+                                isHighlighted &&
+                                  intensity !== 'none' &&
+                                  'ring-1 ring-bronze/40 shadow-[0_0_6px_rgba(184,147,90,0.25)]'
+                              )}
+                            >
+                              {intensityLabel[intensity]}
+                            </span>
+                          </div>
                         )
                       })}
                     </div>
@@ -208,16 +200,14 @@ export default function ProjectMatrix({ categories, isInView }: ProjectMatrixPro
         </div>
       </div>
 
-      {/* Scroll hint with fade gradient */}
-      <div className="relative mt-1">
-        <div className="absolute inset-x-0 -top-8 h-8 bg-gradient-to-t from-[var(--surface)] to-transparent pointer-events-none" />
+      {/* Footer hint */}
+      <div className="relative mt-2">
+        <div className="absolute inset-x-0 -top-6 h-6 bg-gradient-to-t from-[var(--surface)] to-transparent pointer-events-none" />
         <div className="pt-2 border-t border-[var(--border)] flex items-center justify-between">
           <span className="text-[9px] text-[var(--text-muted)] font-mono">
-            Scroll to explore {toolsWithUsage.length} tools
+            {toolsWithUsage.length} tools across {PROJECT_ORDER.length} projects
           </span>
-          <span className="text-[9px] text-[var(--text-muted)] font-mono md:hidden">
-            Swipe horizontally for all projects
-          </span>
+          <span className="text-[9px] text-[var(--text-muted)] font-mono">Scroll for more</span>
         </div>
       </div>
     </motion.div>

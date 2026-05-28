@@ -1,0 +1,262 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0c0c0e;font-family:var(--font-mono,'Courier New',monospace);color:#e0e0e0}
+.root{background:#0c0c0e;min-height:600px;padding:16px;border-radius:12px}
+.header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.header-left{display:flex;align-items:center;gap:10px}
+.section-label{font-size:10px;color:#B8935A;letter-spacing:0.12em;text-transform:uppercase}
+.heading{font-size:18px;font-weight:500;color:#EAEAEA;font-family:var(--font-sans)}
+.lock-btn{font-size:11px;padding:4px 10px;border:1px solid rgba(184,147,90,0.4);background:rgba(184,147,90,0.08);color:#B8935A;border-radius:6px;cursor:pointer;transition:all 0.2s}
+.lock-btn.locked{background:rgba(184,147,90,0.2);border-color:#B8935A}
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.treemap-container{background:#111114;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px}
+.treemap-title{font-size:10px;color:#6B7280;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.treemap-title span{color:#B8935A}
+.treemap{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:6px;height:200px}
+.treemap-cell{border-radius:8px;padding:10px 12px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}
+.treemap-cell.ai{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.2)}
+.treemap-cell.de{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2)}
+.treemap-cell.cloud{background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.2)}
+.treemap-cell.be{background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.2)}
+.treemap-cell.fe{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.15);grid-column:span 2;height:60px}
+.treemap-cell.active{filter:brightness(1.4);transform:scale(1.01)}
+.treemap-cell.dimmed{opacity:0.25}
+.cell-label{font-size:10px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase}
+.cell-label.ai{color:#60a5fa}.cell-label.de{color:#fbbf24}.cell-label.cloud{color:#a78bfa}.cell-label.be{color:#4ade80}.cell-label.fe{color:#f87171}
+.cell-tools{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
+.tool-badge{font-size:9px;padding:2px 6px;border-radius:4px;cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.tool-badge.ai{background:rgba(59,130,246,0.15);color:#93c5fd;border:1px solid rgba(59,130,246,0.2)}
+.tool-badge.de{background:rgba(245,158,11,0.12);color:#fcd34d;border:1px solid rgba(245,158,11,0.2)}
+.tool-badge.cloud{background:rgba(139,92,246,0.12);color:#c4b5fd;border:1px solid rgba(139,92,246,0.2)}
+.tool-badge.be{background:rgba(34,197,94,0.1);color:#86efac;border:1px solid rgba(34,197,94,0.18)}
+.tool-badge.fe{background:rgba(239,68,68,0.1);color:#fca5a5;border:1px solid rgba(239,68,68,0.15)}
+.tool-badge.selected{ring:2px solid #B8935A;box-shadow:0 0 0 1px #B8935A}
+.info-panel{background:#111114;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px}
+.info-title{font-size:10px;color:#6B7280;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.active-tool-name{font-size:20px;font-weight:500;color:#EAEAEA;font-family:var(--font-sans);margin-bottom:4px}
+.active-tool-cat{font-size:11px;color:#B8935A;margin-bottom:12px}
+.project-bars{display:flex;flex-direction:column;gap:6px}
+.proj-row{display:flex;align-items:center;gap:8px}
+.proj-name{font-size:10px;color:#6B7280;width:90px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proj-bar-wrap{flex:1;height:14px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+.proj-bar{height:100%;border-radius:3px;transition:width 0.4s cubic-bezier(0.22,1,0.36,1)}
+.proj-bar.high{background:#B8935A}.proj-bar.med{background:rgba(184,147,90,0.5)}.proj-bar.low{background:rgba(184,147,90,0.2)}.proj-bar.none{background:transparent;width:0!important}
+.proj-label{font-size:9px;width:28px;text-align:right}
+.proj-label.high{color:#B8935A}.proj-label.med{color:rgba(184,147,90,0.6)}.proj-label.low{color:rgba(184,147,90,0.35)}.proj-label.none{color:#4B4B4B}
+.heatmap-container{background:#111114;border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:12px}
+.heatmap-title{font-size:10px;color:#6B7280;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.heatmap-title span{color:#B8935A}
+table{width:100%;border-collapse:collapse;font-size:10px}
+th{font-size:9px;color:#6B7280;letter-spacing:0.08em;text-transform:uppercase;padding:4px 6px;text-align:center;white-space:nowrap}
+th:first-child{text-align:left;width:90px}
+td{padding:3px 6px;text-align:center;transition:all 0.2s}
+td:first-child{text-align:left;font-size:10px;color:#9CA3AF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
+tr{transition:opacity 0.2s}
+tr.highlighted td:not(:first-child){outline:1px solid rgba(184,147,90,0.3)}
+tr.dimmed{opacity:0.2}
+.cell-high{background:rgba(184,147,90,0.75);color:#0c0c0e;border-radius:3px;font-weight:500}
+.cell-med{background:rgba(184,147,90,0.35);color:#B8935A;border-radius:3px}
+.cell-low{background:rgba(184,147,90,0.12);color:rgba(184,147,90,0.6);border-radius:3px}
+.cell-none{color:#2d2d2d}
+.legend{display:flex;align-items:center;gap:12px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05)}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:9px;color:#6B7280}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+</style>
+
+<div class="root">
+  <div class="header">
+    <div class="header-left">
+      <div>
+        <div class="section-label">yusuf.sys ~ stack</div>
+        <div class="heading">Tools I Build With</div>
+      </div>
+    </div>
+    <button class="lock-btn" id="lockBtn" onclick="toggleLock()">Hover mode</button>
+  </div>
+
+  <div class="main-grid">
+    <div class="treemap-container">
+      <div class="treemap-title">Treemap: <span>Depth by usage</span></div>
+      <div class="treemap" id="treemap">
+        <div class="treemap-cell ai" data-cat="ai" onclick="selectCat('ai')">
+          <div class="cell-label ai">AI & Intelligence</div>
+          <div class="cell-tools" id="badges-ai"></div>
+        </div>
+        <div class="treemap-cell de" data-cat="de" onclick="selectCat('de')">
+          <div class="cell-label de">Data Engineering</div>
+          <div class="cell-tools" id="badges-de"></div>
+        </div>
+        <div class="treemap-cell cloud" data-cat="cloud" onclick="selectCat('cloud')">
+          <div class="cell-label cloud">Cloud & Infra</div>
+          <div class="cell-tools" id="badges-cloud"></div>
+        </div>
+        <div class="treemap-cell be" data-cat="be" onclick="selectCat('be')">
+          <div class="cell-label be">Backend & APIs</div>
+          <div class="cell-tools" id="badges-be"></div>
+        </div>
+        <div class="treemap-cell fe" data-cat="fe" onclick="selectCat('fe')">
+          <div class="cell-label fe" style="display:inline">Frontend & Viz</div>
+          <div class="cell-tools" id="badges-fe" style="display:inline-flex;margin-left:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-panel">
+      <div class="info-title">Active tool</div>
+      <div class="active-tool-name" id="activeName">Python</div>
+      <div class="active-tool-cat" id="activeCat">AI & Intelligence</div>
+      <div class="project-bars" id="projectBars"></div>
+    </div>
+  </div>
+
+  <div class="heatmap-container">
+    <div class="heatmap-title">Project Integration Matrix: <span>usage intensity</span></div>
+    <table id="heatmap">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Energy Pipeline</th>
+          <th>HabitOS</th>
+          <th>NETI</th>
+          <th>Titanic</th>
+          <th>ExpenseWise</th>
+        </tr>
+      </thead>
+      <tbody id="heatmapBody"></tbody>
+    </table>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(184,147,90,0.75)"></div>High</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(184,147,90,0.35)"></div>Med</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(184,147,90,0.12)"></div>Low</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,0.05)"></div>None</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const tools = [
+  {id:'python',name:'Python',cat:'ai',projects:{ep:'high',h:'high',neti:'high',t:'high',ew:'med'}},
+  {id:'pytorch',name:'PyTorch',cat:'ai',projects:{ep:'none',h:'none',neti:'high',t:'med',ew:'none'}},
+  {id:'xgboost',name:'XGBoost',cat:'ai',projects:{ep:'none',h:'none',neti:'med',t:'high',ew:'none'}},
+  {id:'sklearn',name:'scikit-learn',cat:'ai',projects:{ep:'none',h:'none',neti:'med',t:'high',ew:'none'}},
+  {id:'pulp',name:'PuLP',cat:'ai',projects:{ep:'high',h:'high',neti:'high',t:'high',ew:'none'}},
+  {id:'pyomo',name:'Pyomo',cat:'ai',projects:{ep:'none',h:'none',neti:'high',t:'none',ew:'none'}},
+  {id:'mlflow',name:'MLflow',cat:'ai',projects:{ep:'none',h:'none',neti:'low',t:'high',ew:'none'}},
+  {id:'hf',name:'HuggingFace',cat:'ai',projects:{ep:'none',h:'none',neti:'low',t:'none',ew:'none'}},
+  {id:'kafka',name:'Kafka',cat:'de',projects:{ep:'high',h:'none',neti:'low',t:'none',ew:'none'}},
+  {id:'spark',name:'Spark',cat:'de',projects:{ep:'high',h:'none',neti:'none',t:'none',ew:'none'}},
+  {id:'airflow',name:'Airflow',cat:'de',projects:{ep:'high',h:'none',neti:'med',t:'none',ew:'none'}},
+  {id:'dbt',name:'dbt',cat:'de',projects:{ep:'high',h:'none',neti:'low',t:'none',ew:'none'}},
+  {id:'pg',name:'PostgreSQL',cat:'de',projects:{ep:'high',h:'high',neti:'med',t:'none',ew:'low'}},
+  {id:'bq',name:'BigQuery',cat:'de',projects:{ep:'none',h:'none',neti:'low',t:'none',ew:'none'}},
+  {id:'duck',name:'DuckDB',cat:'de',projects:{ep:'none',h:'none',neti:'low',t:'none',ew:'none'}},
+  {id:'s3',name:'AWS S3',cat:'cloud',projects:{ep:'high',h:'none',neti:'high',t:'high',ew:'none'}},
+  {id:'terraform',name:'Terraform',cat:'cloud',projects:{ep:'high',h:'none',neti:'none',t:'none',ew:'none'}},
+  {id:'docker',name:'Docker',cat:'cloud',projects:{ep:'high',h:'high',neti:'none',t:'high',ew:'none'}},
+  {id:'gha',name:'GitHub Actions',cat:'cloud',projects:{ep:'none',h:'high',neti:'none',t:'none',ew:'none'}},
+  {id:'dynamo',name:'DynamoDB',cat:'cloud',projects:{ep:'none',h:'none',neti:'none',t:'high',ew:'none'}},
+  {id:'fastapi',name:'FastAPI',cat:'be',projects:{ep:'none',h:'high',neti:'high',t:'high',ew:'low'}},
+  {id:'flask',name:'Flask',cat:'be',projects:{ep:'none',h:'none',neti:'none',t:'none',ew:'high'}},
+  {id:'redis',name:'Redis',cat:'be',projects:{ep:'none',h:'high',neti:'none',t:'none',ew:'none'}},
+  {id:'nextjs',name:'Next.js',cat:'be',projects:{ep:'none',h:'none',neti:'none',t:'none',ew:'none'}},
+  {id:'react',name:'React 18',cat:'fe',projects:{ep:'none',h:'high',neti:'none',t:'none',ew:'none'}},
+  {id:'tailwind',name:'Tailwind',cat:'fe',projects:{ep:'none',h:'high',neti:'none',t:'none',ew:'none'}},
+  {id:'streamlit',name:'Streamlit',cat:'fe',projects:{ep:'high',h:'none',neti:'none',t:'high',ew:'none'}},
+  {id:'plotly',name:'Plotly',cat:'fe',projects:{ep:'high',h:'none',neti:'low',t:'none',ew:'none'}},
+  {id:'threejs',name:'Three.js',cat:'fe',projects:{ep:'none',h:'none',neti:'none',t:'none',ew:'none'}},
+];
+
+const projects=[
+  {key:'ep',name:'Energy Pipeline'},
+  {key:'h',name:'HabitOS'},
+  {key:'neti',name:'NETI'},
+  {key:'t',name:'Titanic'},
+  {key:'ew',name:'ExpenseWise'},
+];
+
+let activeTool = tools[0];
+let locked = false;
+
+function toggleLock(){
+  locked=!locked;
+  const btn=document.getElementById('lockBtn');
+  btn.textContent=locked?'Locked':'Hover mode';
+  btn.className='lock-btn'+(locked?' locked':'');
+}
+
+function barWidth(level){
+  return {high:'100%',med:'65%',low:'30%',none:'0%'}[level]||'0%';
+}
+
+function renderBadges(){
+  const cats=['ai','de','cloud','be','fe'];
+  cats.forEach(cat=>{
+    const el=document.getElementById('badges-'+cat);
+    el.innerHTML='';
+    tools.filter(t=>t.cat===cat).forEach(t=>{
+      const b=document.createElement('span');
+      b.className='tool-badge '+cat+(t.id===activeTool.id?' selected':'');
+      b.textContent=t.name;
+      b.onclick=(e)=>{e.stopPropagation();selectTool(t);};
+      el.appendChild(b);
+    });
+  });
+}
+
+function renderInfoPanel(){
+  document.getElementById('activeName').textContent=activeTool.name;
+  const catNames={ai:'AI & Intelligence',de:'Data Engineering',cloud:'Cloud & Infra',be:'Backend & APIs',fe:'Frontend & Viz'};
+  document.getElementById('activeCat').textContent=catNames[activeTool.cat]||'';
+  const bars=document.getElementById('projectBars');
+  bars.innerHTML='';
+  projects.forEach(p=>{
+    const level=activeTool.projects[p.key]||'none';
+    bars.innerHTML+=`<div class="proj-row">
+      <div class="proj-name">${p.name}</div>
+      <div class="proj-bar-wrap"><div class="proj-bar ${level}" style="width:${barWidth(level)}"></div></div>
+      <div class="proj-label ${level}">${level.toUpperCase()}</div>
+    </div>`;
+  });
+}
+
+function renderHeatmap(){
+  const tbody=document.getElementById('heatmapBody');
+  tbody.innerHTML='';
+  tools.forEach(t=>{
+    const isActive=t.id===activeTool.id;
+    const tr=document.createElement('tr');
+    tr.className=isActive?'highlighted':'';
+    let row=`<td style="color:${isActive?'#EAEAEA':'#9CA3AF'}">${t.name}</td>`;
+    projects.forEach(p=>{
+      const level=t.projects[p.key]||'none';
+      const cls={high:'cell-high',med:'cell-med',low:'cell-low',none:'cell-none'}[level];
+      row+=`<td><span class="${cls}" style="padding:2px 6px;border-radius:3px;font-size:9px">${level==='none'?'—':level.charAt(0).toUpperCase()+level.slice(1)}</span></td>`;
+    });
+    tr.innerHTML=row;
+    tbody.appendChild(tr);
+  });
+}
+
+function selectTool(t){
+  activeTool=t;
+  renderBadges();
+  renderInfoPanel();
+  renderHeatmap();
+  const cells=document.querySelectorAll('.treemap-cell');
+  cells.forEach(c=>{
+    c.classList.remove('active','dimmed');
+    if(c.dataset.cat===t.cat) c.classList.add('active');
+    else c.classList.add('dimmed');
+  });
+}
+
+function selectCat(cat){
+  const first=tools.find(t=>t.cat===cat);
+  if(first) selectTool(first);
+}
+
+renderBadges();
+renderInfoPanel();
+renderHeatmap();
+</script>

@@ -2,64 +2,67 @@
 
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { Lock, Unlock } from 'lucide-react'
 import { stack } from '@/content/stack'
-import { StackInteractionProvider } from '@/components/stack/useStackInteraction'
+import {
+  StackInteractionProvider,
+  useStackInteraction,
+} from '@/components/stack/useStackInteraction'
 import CategoryTreemap from '@/components/stack/CategoryTreemap'
 import ProjectMatrix from '@/components/stack/ProjectMatrix'
-import ToolTooltip from '@/components/stack/ToolTooltip'
-import ConnectionLines from '@/components/stack/ConnectionLines'
+import ToolInfoPanel from '@/components/stack/ToolInfoPanel'
 
 function StackContent() {
   const sectionRef = useRef<HTMLElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
+  const { mode, toggleMode } = useStackInteraction()
 
   return (
-    <section id="stack" ref={sectionRef} className="py-24 lg:py-32 bg-[var(--background)]">
-      <div className="max-w-6xl mx-auto px-6 lg:px-16">
+    <section id="stack" ref={sectionRef} className="py-20 lg:py-28 bg-[var(--background)]">
+      <div className="max-w-6xl mx-auto px-4 lg:px-12">
         {/* Header */}
         <motion.div
-          className="flex flex-col gap-4 mb-12"
-          initial={{ opacity: 0, y: 24 }}
-          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="flex items-center justify-between mb-8 pb-4 border-b border-[var(--border)]"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          transition={{ duration: 0.5 }}
         >
-          <span className="font-mono text-sm text-bronze">{'\u276F'} yusuf.sys ~ stack</span>
-
-          <h2 className="font-serif text-3xl lg:text-5xl text-[var(--text-primary)] tracking-tight leading-tight">
-            Tools I Build With
-          </h2>
-
-          <p className="font-mono text-xs text-[var(--text-muted)] max-w-2xl leading-relaxed">
-            Hover any tool to see which projects it powers and at what depth.
-            Click to lock the view for exploration. The matrix below shows the full integration landscape.
-          </p>
+          <div>
+            <span className="font-mono text-[10px] text-bronze tracking-[0.12em] uppercase">
+              yusuf.sys ~ stack
+            </span>
+            <h2 className="font-sans text-xl lg:text-2xl font-medium text-[var(--text-primary)] mt-1">
+              Tools I Build With
+            </h2>
+          </div>
+          <button
+            onClick={toggleMode}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md font-mono text-[10px] uppercase tracking-wider transition-all duration-200 border cursor-pointer"
+            style={{
+              background:
+                mode === 'locked' ? 'rgba(184, 147, 90, 0.15)' : 'rgba(184, 147, 90, 0.06)',
+              borderColor: mode === 'locked' ? '#b8935a' : 'rgba(184, 147, 90, 0.3)',
+              color: '#b8935a',
+            }}
+          >
+            {mode === 'locked' ? <Lock size={12} /> : <Unlock size={12} />}
+            {mode === 'locked' ? 'Locked' : 'Hover mode'}
+          </button>
         </motion.div>
 
-        {/* Category Treemap */}
-        <div className="mb-10">
+        {/* Bento Grid: Treemap + Info Panel */}
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-3 mb-3"
+          initial={{ opacity: 0, y: 16 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
           <CategoryTreemap categories={stack} isInView={isInView} />
-        </div>
+          <ToolInfoPanel />
+        </motion.div>
 
         {/* Project Integration Matrix */}
-        <div className="hidden md:block">
-          <ProjectMatrix categories={stack} isInView={isInView} />
-        </div>
-
-        {/* Mobile fallback message */}
-        <motion.div
-          className="md:hidden p-4 rounded-lg bg-[var(--surface)] border border-[var(--border)]"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <p className="font-mono text-xs text-[var(--text-muted)] text-center">
-            View on desktop to see the full project integration matrix and connection lines.
-          </p>
-        </motion.div>
-
-        {/* Interactive overlays */}
-        <ToolTooltip />
-        <ConnectionLines />
+        <ProjectMatrix categories={stack} isInView={isInView} />
       </div>
     </section>
   )
